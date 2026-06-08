@@ -1,0 +1,14 @@
+downloads/
+db/
+reports/
+logs/
+.env
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+.playwright_sessions/
+*.db
+.secrets.json
+screenshots/

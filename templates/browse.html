@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}{{ instance.alias }} - Browse Config{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{{ instance.alias }} - Configuration Data</h1>
+  <a href="{{ url_for('index') }}" class="btn btn-ghost">← Dashboard</a>
+</div>
+
+<div class="browse-stats">
+  <div class="stat-box"><span class="stat-num">{{ entities | length }}</span><span class="stat-label">Entities</span></div>
+  <div class="stat-box"><span class="stat-num">{{ total_fields }}</span><span class="stat-label">Fields</span></div>
+  <div class="stat-box"><span class="stat-num">{{ total_picklists }}</span><span class="stat-label">Picklists</span></div>
+  <div class="stat-box"><span class="stat-num">{{ total_picklist_values }}</span><span class="stat-label">Picklist Values</span></div>
+</div>
+
+<div class="browse-tabs">
+  <button class="tab-btn active" onclick="showTab(event, 'entities')">Entities &amp; Fields</button>
+  <button class="tab-btn" onclick="showTab(event, 'picklists')">Picklists</button>
+</div>
+
+<!-- Entities tab -->
+<div id="tab-entities" class="tab-panel">
+  <div class="search-bar">
+    <input type="text" id="entity-search" placeholder="Filter entities or fields…" oninput="filterEntities()" class="input-search">
+    <span id="entity-list-count" class="match-count"></span>
+  </div>
+
+  <div id="entity-list">
+    {% for entity in entities %}
+    {% set search_index = ([entity.entity_name, entity.entity_label or ''] + entity.fields | map(attribute='field_id') | list + entity.fields | map(attribute='field_label') | map('default', '') | list) | join(' ') | lower %}
+    <details class="entity-block" data-search="{{ search_index }}">
+      <summary class="entity-summary">
+        <span class="entity-name">{{ entity.entity_name }}</span>
+        {% if entity.entity_label %}<span class="entity-label">{{ entity.entity_label }}</span>{% endif %}
+        <span class="field-count">{{ entity.fields | length }} fields</span>
+      </summary>
+      <div class="field-table-wrap">
+        <table class="field-table">
+          <thead>
+            <tr>
+              <th>Field ID</th>
+              <th>Label</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Picklist</th>
+              <th>Max Length</th>
+              <th>Visibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in entity.fields %}
+            <tr class="{% if f.is_custom %}custom-field{% endif %}">
+              <td class="field-id">{{ f.field_id }}</td>
+              <td>{{ f.field_label or '' }}</td>
+              <td class="field-type">{{ f.field_type or '' }}</td>
+              <td>{% if f.required == 'true' %}<span class="badge-req">Yes</span>{% endif %}</td>
+              <td>{% if f.picklist_id %}<code>{{ f.picklist_id }}</code>{% endif %}</td>
+              <td>{{ f.max_length or '' }}</td>
+              <td>{{ f.visibility or '' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% else %}
+    <p class="empty-state">No metadata stored yet. Run an <strong>OData Metadata</strong> pull first.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Picklists tab -->
+<div id="tab-picklists" class="tab-panel" style="display:none">
+  <div class="search-bar">
+    <input type="text" id="picklist-search" placeholder="Filter picklist ID or label…" oninput="filterPicklists()" class="input-search">
+    <span id="picklist-list-count" class="match-count"></span>
+  </div>
+
+  <div id="picklist-list">
+    {% for pid, values in picklists.items() %}
+    {% set pl_index = ([pid] + values | map(attribute='external_code') | map('default', '') | list + values | map(attribute='label_en') | map('default', '') | list) | join(' ') | lower %}
+    <details class="entity-block" data-search="{{ pl_index }}">
+      <summary class="entity-summary">
+        <span class="entity-name">{{ pid }}</span>
+        <span class="field-count">{{ values | length }} values</span>
+      </summary>
+      <div class="field-table-wrap">
+        <table class="field-table">
+          <thead>
+            <tr>
+              <th>External Code</th>
+              <th>Option ID</th>
+              <th>Label (EN)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in values %}
+            <tr>
+              <td><code>{{ v.external_code or '' }}</code></td>
+              <td>{{ v.option_id or '' }}</td>
+              <td>{{ v.label_en or '' }}</td>
+              <td><span class="badge badge-{{ (v.status or 'ACTIVE') | lower }}">{{ v.status or 'ACTIVE' }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% else %}
+    <p class="empty-state">No picklist data stored yet. Run a <strong>Picklist</strong> pull first.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+function showTab(event, name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).style.display = 'block';
+  event.target.classList.add('active');
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+function applyFilter(listId, inputId) {
+  const q = document.getElementById(inputId).value.toLowerCase().trim();
+  let shown = 0;
+  document.querySelectorAll('#' + listId + ' details').forEach(d => {
+    const match = !q || (d.dataset.search || '').includes(q);
+    d.style.display = match ? '' : 'none';
+    if (match) shown++;
+  });
+  const counter = document.getElementById(listId + '-count');
+  if (counter) counter.textContent = q ? `${shown} match${shown !== 1 ? 'es' : ''}` : '';
+}
+
+const filterEntities  = debounce(() => applyFilter('entity-list',   'entity-search'),   120);
+const filterPicklists = debounce(() => applyFilter('picklist-list', 'picklist-search'), 120);
+</script>
+
+<style>
+.browse-stats { display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+.stat-box { background:var(--surface,#fff); border:1px solid var(--border,#e2e8f0); border-radius:8px; padding:.75rem 1.25rem; text-align:center; min-width:110px; }
+.stat-num { display:block; font-size:1.6rem; font-weight:700; color:var(--accent,#3b82f6); }
+.stat-label { font-size:.75rem; color:var(--muted,#64748b); text-transform:uppercase; }
+.browse-tabs { display:flex; gap:.5rem; margin-bottom:1rem; }
+.tab-btn { padding:.4rem 1rem; border:1px solid var(--border,#e2e8f0); border-radius:6px; background:transparent; cursor:pointer; font-size:.875rem; }
+.tab-btn.active { background:var(--accent,#3b82f6); color:#fff; border-color:var(--accent,#3b82f6); }
+.search-bar { margin-bottom:1rem; display:flex; align-items:center; gap:.75rem; }
+.match-count { font-size:.8rem; color:var(--muted,#64748b); }
+.input-search { width:100%; max-width:400px; padding:.4rem .75rem; border:1px solid var(--border,#e2e8f0); border-radius:6px; font-size:.875rem; }
+.entity-block { border:1px solid var(--border,#e2e8f0); border-radius:8px; margin-bottom:.5rem; overflow:hidden; }
+.entity-summary { padding:.6rem 1rem; cursor:pointer; display:flex; align-items:center; gap:.75rem; background:var(--surface,#f8fafc); list-style:none; }
+.entity-summary::-webkit-details-marker { display:none; }
+.entity-name { font-weight:600; font-size:.9rem; }
+.entity-label { color:var(--muted,#64748b); font-size:.8rem; flex:1; }
+.field-count { font-size:.75rem; background:var(--border,#e2e8f0); border-radius:4px; padding:.1rem .4rem; margin-left:auto; white-space:nowrap; }
+.field-table-wrap { overflow-x:auto; }
+.field-table { width:100%; border-collapse:collapse; font-size:.8rem; }
+.field-table th { background:var(--surface,#f1f5f9); padding:.4rem .75rem; text-align:left; border-bottom:1px solid var(--border,#e2e8f0); white-space:nowrap; }
+.field-table td { padding:.35rem .75rem; border-bottom:1px solid var(--border,#f1f5f9); vertical-align:top; }
+.field-table tr:last-child td { border-bottom:none; }
+.field-id { font-family:monospace; font-size:.78rem; }
+.field-type { color:var(--muted,#64748b); font-size:.78rem; }
+.custom-field .field-id { color:#7c3aed; }
+.badge-req { background:#fee2e2; color:#dc2626; border-radius:4px; padding:.1rem .35rem; font-size:.7rem; font-weight:600; }
+.badge-active { background:#dcfce7; color:#16a34a; border-radius:4px; padding:.1rem .35rem; font-size:.7rem; }
+.badge-inactive { background:#f1f5f9; color:#64748b; border-radius:4px; padding:.1rem .35rem; font-size:.7rem; }
+</style>
+{% endblock %}

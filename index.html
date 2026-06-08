@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SF Config Compare | SuccessFactors Metadata and Picklist Comparison</title>
+  <meta name="description" content="Open-source Flask app for comparing SAP SuccessFactors OData metadata and picklist configuration across two instances, with HTML and Excel reports.">
+  <meta name="keywords" content="SuccessFactors config compare, SAP SuccessFactors metadata, OData metadata comparison, picklist comparison, HRIS configuration audit">
+  <meta name="author" content="Sahir Vhora">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://sahirvhora.github.io/sf-config-compare/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SF Config Compare">
+  <meta property="og:description" content="Compare SuccessFactors metadata and picklists across tenants, then export clear HTML and Excel diff reports.">
+  <meta property="og:url" content="https://sahirvhora.github.io/sf-config-compare/">
+  <meta property="og:image" content="https://sahirvhora.github.io/sf-config-compare/assets/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SF Config Compare">
+  <meta name="twitter:description" content="Open-source SuccessFactors metadata and picklist comparison for implementation and support teams.">
+  <meta name="twitter:image" content="https://sahirvhora.github.io/sf-config-compare/assets/social-preview.png">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #536173;
+      --line: #d9e2ec;
+      --paper: #ffffff;
+      --wash: #f5f8fb;
+      --teal: #0f9f8f;
+      --indigo: #4b5bdc;
+      --amber: #d78a17;
+      --rose: #d94c66;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--wash);
+      color: var(--ink);
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 14px 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+    .mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: linear-gradient(135deg, var(--teal), var(--indigo));
+      box-shadow: 0 8px 22px rgba(15, 159, 143, 0.2);
+    }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 650;
+      margin-left: 18px;
+    }
+    nav a:hover {
+      color: var(--ink);
+    }
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+      gap: 44px;
+      align-items: center;
+      padding: 72px 0 50px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #0b756b;
+      font-size: 13px;
+      font-weight: 750;
+      margin-bottom: 18px;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: var(--teal);
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(42px, 7vw, 76px);
+      line-height: 0.96;
+      letter-spacing: 0;
+      max-width: 780px;
+    }
+    .lead {
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: 19px;
+      line-height: 1.65;
+      max-width: 620px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+    .button {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 8px;
+      padding: 0 16px;
+      text-decoration: none;
+      font-weight: 750;
+      font-size: 14px;
+    }
+    .button.primary {
+      color: white;
+      background: var(--ink);
+    }
+    .button.secondary {
+      color: var(--ink);
+      background: white;
+      border: 1px solid var(--line);
+    }
+    .visual {
+      position: relative;
+      min-height: 452px;
+    }
+    .product {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 24px 60px rgba(23, 32, 51, 0.14);
+      overflow: hidden;
+    }
+    .product-top {
+      height: 42px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: #fbfcfe;
+    }
+    .dots {
+      display: flex;
+      gap: 6px;
+    }
+    .dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 99px;
+      background: #c7d2df;
+    }
+    .product-title {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .product-body {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      min-height: 390px;
+    }
+    .sidebar {
+      background: #172033;
+      padding: 16px;
+      color: white;
+    }
+    .side-pill {
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      margin-bottom: 10px;
+    }
+    .side-pill.active {
+      background: rgba(15,159,143,0.34);
+    }
+    .screen {
+      padding: 18px;
+    }
+    .screen-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .screen-head strong {
+      font-size: 18px;
+    }
+    .status {
+      color: #075e57;
+      background: #dff7f3;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .tenant {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .tenant h2 {
+      font-size: 13px;
+      margin: 0 0 12px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 54px;
+      gap: 10px;
+      align-items: center;
+      height: 24px;
+      margin-top: 8px;
+    }
+    .bar {
+      height: 8px;
+      border-radius: 99px;
+      background: #dbe4ef;
+    }
+    .bar.teal { background: #8edbd2; }
+    .bar.amber { background: #f0c16d; }
+    .bar.rose { background: #eda5b3; }
+    .tag {
+      height: 18px;
+      border-radius: 999px;
+      background: #eef3f8;
+    }
+    .diff-table {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .diff-row {
+      display: grid;
+      grid-template-columns: 1.4fr 0.8fr 0.8fr;
+      gap: 12px;
+      padding: 12px;
+      border-top: 1px solid var(--line);
+    }
+    .diff-row:first-child {
+      border-top: 0;
+      background: #f7fafc;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .cell-line {
+      height: 8px;
+      border-radius: 99px;
+      background: #dbe4ef;
+      margin-top: 4px;
+    }
+    .feature-band {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      padding: 18px 0 64px;
+    }
+    .feature {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+    }
+    .feature h2 {
+      font-size: 18px;
+      margin: 0 0 10px;
+    }
+    .feature p, .section p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+    .section {
+      border-top: 1px solid var(--line);
+      padding: 52px 0;
+    }
+    .section h2 {
+      font-size: 30px;
+      margin: 0 0 14px;
+    }
+    pre {
+      margin: 24px 0 0;
+      padding: 18px;
+      overflow-x: auto;
+      border-radius: 8px;
+      background: #111827;
+      color: #e5edf5;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    footer {
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      padding: 26px 0 42px;
+      font-size: 14px;
+    }
+    @media (max-width: 880px) {
+      nav {
+        display: none;
+      }
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 44px;
+      }
+      .visual {
+        min-height: auto;
+      }
+      .product-body {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+      .feature-band {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "SF Config Compare",
+    "description": "Open-source Flask app for comparing SAP SuccessFactors OData metadata and picklist configuration across two instances.",
+    "codeRepository": "https://github.com/SahirVhora/sf-config-compare",
+    "programmingLanguage": "Python",
+    "applicationCategory": "DeveloperApplication",
+    "author": {
+      "@type": "Person",
+      "name": "Sahir Vhora"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand"><span class="mark">SF</span> SF Config Compare</div>
+      <nav aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#setup">Setup</a>
+        <a href="https://github.com/SahirVhora/sf-config-compare">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Open-source SuccessFactors utility</div>
+        <h1>SF Config Compare</h1>
+        <p class="lead">Compare SAP SuccessFactors OData metadata and picklist configuration across tenants, then export clear HTML and Excel reports for implementation, support, and audit work.</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/SahirVhora/sf-config-compare">View on GitHub</a>
+          <a class="button secondary" href="#setup">Run locally</a>
+        </div>
+      </div>
+      <div class="visual" aria-label="Product preview">
+        <div class="product">
+          <div class="product-top">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="product-title">Comparison report</div>
+          </div>
+          <div class="product-body">
+            <aside class="sidebar" aria-hidden="true">
+              <div class="side-pill active"></div>
+              <div class="side-pill"></div>
+              <div class="side-pill"></div>
+            </aside>
+            <div class="screen">
+              <div class="screen-head">
+                <strong>Tenant A vs Tenant B</strong>
+                <span class="status">Report ready</span>
+              </div>
+              <div class="compare-grid">
+                <div class="tenant">
+                  <h2>Metadata</h2>
+                  <div class="row"><span class="bar teal"></span><span class="tag"></span></div>
+                  <div class="row"><span class="bar"></span><span class="tag"></span></div>
+                  <div class="row"><span class="bar amber"></span><span class="tag"></span></div>
+                </div>
+                <div class="tenant">
+                  <h2>Picklists</h2>
+                  <div class="row"><span class="bar teal"></span><span class="tag"></span></div>
+                  <div class="row"><span class="bar rose"></span><span class="tag"></span></div>
+                  <div class="row"><span class="bar"></span><span class="tag"></span></div>
+                </div>
+              </div>
+              <div class="diff-table" aria-hidden="true">
+                <div class="diff-row"><span>Object</span><span>Source</span><span>Target</span></div>
+                <div class="diff-row"><span class="cell-line"></span><span class="cell-line"></span><span class="cell-line"></span></div>
+                <div class="diff-row"><span class="cell-line"></span><span class="cell-line"></span><span class="cell-line"></span></div>
+                <div class="diff-row"><span class="cell-line"></span><span class="cell-line"></span><span class="cell-line"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="features" class="feature-band">
+      <article class="feature">
+        <h2>Metadata diffs</h2>
+        <p>Find missing entities and field-level differences such as type, required flag, visibility, max length, picklist assignment, and custom-field status.</p>
+      </article>
+      <article class="feature">
+        <h2>Picklist checks</h2>
+        <p>Compare picklist presence, missing values, labels, statuses, and locale-specific value differences between environments.</p>
+      </article>
+      <article class="feature">
+        <h2>Audit reports</h2>
+        <p>Generate readable browser reports and Excel exports that can be shared with project teams during release, migration, or support reviews.</p>
+      </article>
+    </section>
+    <section id="setup" class="section">
+      <h2>Run the Flask app</h2>
+      <p>The app stores runtime data locally and needs API access to your own SuccessFactors tenants. Do not deploy it publicly with real credentials or tenant data unless it is protected by your own authentication and hosting controls.</p>
+      <pre><code>git clone https://github.com/SahirVhora/sf-config-compare.git
+cd sf-config-compare
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+flask run --port 5050</code></pre>
+    </section>
+    <footer>
+      Built for SuccessFactors practitioners who need faster configuration visibility across tenants.
+    </footer>
+  </main>
+</body>
+</html>

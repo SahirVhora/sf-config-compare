@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Instances - SF Config Compare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Instances</h1>
+  <a href="{{ url_for('add_instance') }}" class="btn btn-primary">+ Add Instance</a>
+</div>
+
+{% if not instances %}
+<div class="empty-state">
+  <p>No SF instances configured yet.</p>
+  <a href="{{ url_for('add_instance') }}" class="btn btn-primary">Add your first instance</a>
+</div>
+{% else %}
+<div class="card-grid">
+  {% for inst in instances %}
+  <div class="card instance-card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">{{ inst.alias }}</h2>
+        <div class="card-subtitle">{{ inst.base_url }}</div>
+      </div>
+      <span class="badge badge-{{ inst.auth_type }}">{{ inst.auth_type | upper }}</span>
+    </div>
+    <div class="card-body">
+      <div class="meta-row"><span class="meta-label">Company ID</span><span>{{ inst.company_id }}</span></div>
+      {% if inst.username %}
+      <div class="meta-row"><span class="meta-label">Username</span><span>{{ inst.username }}</span></div>
+      {% endif %}
+      <div class="meta-row">
+        <span class="meta-label">Last Metadata</span>
+        <span class="timestamp {% if not inst.last_metadata_pull %}ts-never{% endif %}">
+          {{ inst.last_metadata_pull or 'Never' }}
+        </span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Last Picklist</span>
+        <span class="timestamp {% if not inst.last_picklist_pull %}ts-never{% endif %}">
+          {{ inst.last_picklist_pull or 'Never' }}
+        </span>
+      </div>
+    </div>
+    <div class="card-actions">
+      <form action="{{ url_for('trigger_pull', instance_id=inst.id) }}" method="post" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" name="pull_type" value="odata_metadata" class="btn btn-sm btn-outline">OData Metadata</button>
+        <button type="submit" name="pull_type" value="picklist" class="btn btn-sm btn-outline">Picklist</button>
+      </form>
+      <div class="card-actions-right">
+        <a href="{{ url_for('browse', instance_id=inst.id) }}" class="btn btn-sm btn-outline">Browse</a>
+        <a href="{{ url_for('edit_instance', instance_id=inst.id) }}" class="btn btn-sm btn-ghost">Edit</a>
+        <form action="{{ url_for('del_instance', instance_id=inst.id) }}" method="post"
+              onsubmit="return confirm('Delete {{ inst.alias }}?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

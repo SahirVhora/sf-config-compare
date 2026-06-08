@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Compare Instances - SF Config Compare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Compare Instances</h1>
+</div>
+
+<div class="form-card">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+      <label for="instance_a">Instance A (Source)</label>
+      <select id="instance_a" name="instance_a" required class="select-field">
+        <option value="">- select -</option>
+        {% for inst in instances %}
+        <option value="{{ inst.id }}">{{ inst.alias }} ({{ inst.base_url }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="instance_b">Instance B (Target)</label>
+      <select id="instance_b" name="instance_b" required class="select-field">
+        <option value="">- select -</option>
+        {% for inst in instances %}
+        <option value="{{ inst.id }}">{{ inst.alias }} ({{ inst.base_url }})</option>
+        {% endfor %}
+      </select>
+    </div>
+<div class="form-actions">
+      <button type="submit" class="btn btn-primary">Run Comparison</button>
+    </div>
+  </form>
+</div>
+
+{% if instances | length < 2 %}
+<div class="info-box">
+  You need at least two instances with pulled data to run a comparison.
+</div>
+{% endif %}
+{% endblock %}

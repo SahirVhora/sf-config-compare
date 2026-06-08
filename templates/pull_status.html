@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Pull Progress - SF Config Compare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Pull Progress</h1>
+  <a href="{{ url_for('index') }}" class="btn btn-ghost">← Dashboard</a>
+</div>
+
+<div class="status-card">
+  <div class="status-header">
+    <span class="status-instance">{{ instance.alias }}</span>
+    <span class="badge badge-{{ job.pull_type }}">{{ job.pull_type | upper }}</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+  </div>
+  <p class="progress-pct" id="progress-pct">0%</p>
+
+  <div class="log-container" id="log-container"></div>
+
+  <div id="done-banner" class="done-banner" style="display:none">
+    <span class="done-icon">✅</span>
+    <span>Pull complete.</span>
+    <a href="{{ url_for('browse', instance_id=instance.id) }}" class="btn btn-primary btn-sm">Browse Data</a>
+    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">Dashboard</a>
+  </div>
+  <div id="error-banner" class="error-banner" style="display:none">
+    <span>❌ Pull failed. Check logs for details.</span>
+    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">Back</a>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+connectSSE("{{ url_for('pull_stream', job_id=job_id) }}");
+</script>
+{% endblock %}

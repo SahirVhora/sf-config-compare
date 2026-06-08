@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Instance - SF Config Compare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>{{ action }} Instance</h1>
+  <a href="{{ url_for('index') }}" class="btn btn-ghost">← Back</a>
+</div>
+
+<div class="form-card">
+  <form method="post" autocomplete="off">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-section">
+      <h3 class="form-section-title">Connection</h3>
+      <div class="form-group">
+        <label for="alias">Alias</label>
+        <input type="text" id="alias" name="alias" required
+               value="{{ instance.alias if instance else '' }}"
+               placeholder="e.g. ACME-PROD">
+        <p class="form-hint">Friendly name shown in reports, for example DEV, TEST, UAT, or PROD.</p>
+      </div>
+      <div class="form-group">
+        <label for="base_url">Base URL</label>
+        <input type="url" id="base_url" name="base_url" required
+               value="{{ instance.base_url if instance else '' }}"
+               placeholder="https://api4.successfactors.com">
+        <p class="form-hint">Use the SuccessFactors API host only. Do not include <code>/odata/v2</code> or a login page path.</p>
+      </div>
+      <div class="form-group">
+        <label for="company_id">Company ID</label>
+        <input type="text" id="company_id" name="company_id" required
+               value="{{ instance.company_id if instance else '' }}">
+        <p class="form-hint">Your SuccessFactors company ID, the same tenant/company value used for API authentication.</p>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="form-section-title">Authentication</h3>
+      <div class="form-group">
+        <label>Auth Type</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="auth_type" value="basic"
+                   {% if not instance or instance.auth_type == 'basic' %}checked{% endif %}
+                   onchange="toggleAuth(this.value)">
+            Basic (Username/Password)
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="auth_type" value="oauth2"
+                   {% if instance and instance.auth_type == 'oauth2' %}checked{% endif %}
+                   onchange="toggleAuth(this.value)">
+            OAuth 2.0 (Client Credentials)
+          </label>
+        </div>
+      </div>
+
+      <div id="basic-fields">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="off" data-required-active="true"
+                 value="{{ instance.username if instance else '' }}">
+          <p class="form-hint">Use the SF API/service user. Enter either the plain user ID or the full <code>user@companyId</code>; the app adds Company ID automatically for plain user IDs.</p>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="new-password"
+                 data-required-active="{{ 'false' if instance else 'true' }}"
+                 placeholder="{{ '(unchanged)' if instance else '' }}">
+          <p class="form-hint">
+            {% if instance %}
+            Leave blank to keep the stored password. Enter a value only when rotating or replacing it.
+            {% else %}
+            Password for the SF API/service user. It is stored in the OS keyring when available.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      <div id="oauth-fields" style="display:none">
+        <div class="form-group">
+          <label for="client_id">Client ID</label>
+          <input type="text" id="client_id" name="client_id" autocomplete="off" data-required-active="true"
+                 value="{{ instance.client_id if instance else '' }}">
+          <p class="form-hint">OAuth client ID from your SuccessFactors API/OAuth client registration.</p>
+        </div>
+        <div class="form-group">
+          <label for="client_secret">Client Secret</label>
+          <input type="password" id="client_secret" name="client_secret" autocomplete="new-password"
+                 data-required-active="{{ 'false' if instance else 'true' }}"
+                 placeholder="{{ '(unchanged)' if instance else '' }}">
+          <p class="form-hint">
+            {% if instance %}
+            Leave blank to keep the stored client secret.
+            {% else %}
+            OAuth client secret. It is stored in the OS keyring when available.
+            {% endif %}
+          </p>
+        </div>
+        <div class="form-group">
+          <label for="token_url">Token URL</label>
+          <input type="url" id="token_url" name="token_url" data-required-active="true"
+                 value="{{ instance.token_url if instance else '' }}"
+                 placeholder="https://api4.successfactors.com/oauth/token">
+          <p class="form-hint">Token endpoint for the same SF data center/API host.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ action }} Instance</button>
+      <a href="{{ url_for('index') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function toggleAuth(type) {
+  const groups = {
+    basic: document.getElementById('basic-fields'),
+    oauth2: document.getElementById('oauth-fields')
+  };
+
+  Object.entries(groups).forEach(([authType, group]) => {
+    const active = authType === type;
+    group.style.display = active ? '' : 'none';
+    group.querySelectorAll('input').forEach(input => {
+      input.disabled = !active;
+      input.required = active && input.dataset.requiredActive === 'true';
+    });
+  });
+}
+// Set initial state
+const checked = document.querySelector('input[name="auth_type"]:checked');
+if (checked) toggleAuth(checked.value);
+</script>
+{% endblock %}
