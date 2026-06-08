@@ -26,7 +26,25 @@
         {% endfor %}
       </select>
     </div>
-<div class="form-actions">
+
+    <div class="form-section-title" style="margin-top:20px;">Picklist Comparison Scope</div>
+    <div class="checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" name="compare_fields" value="label_en" checked>
+        English label
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="compare_fields" value="status" checked>
+        Status
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="compare_fields" value="locale:en_US" checked>
+        Locale: en_US
+      </label>
+    </div>
+    <p class="muted">Uncheck fields to exclude them from picklist comparison. Speeds up large comparisons.</p>
+
+    <div class="form-actions">
       <button type="submit" class="btn btn-primary">Run Comparison</button>
     </div>
   </form>

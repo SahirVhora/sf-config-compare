@@ -71,6 +71,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 .btn-ghost:hover { background: var(--bg); }
 .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
 .btn-danger:hover { background: #fef2f2; }
+
+/* Connection test */
+.test-status { font-size: .8rem; margin-left: .75rem; }
+.test-status.testing { color: var(--warning); }
+.test-status.success { color: #16a34a; }
+.test-status.error { color: var(--danger); }
+.test-status.info { color: var(--text-muted); }
 .btn-sm { padding: 5px 12px; font-size: 12px; }
 
 /* Forms */

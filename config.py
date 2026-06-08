@@ -17,3 +17,6 @@ if not SECRET_KEY:
         'Generate one with: python3 -c "import secrets; print(secrets.token_hex(32))"'
     )
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# Optional shared secret to guard report endpoints
+REPORT_ACCESS_TOKEN = os.getenv("REPORT_ACCESS_TOKEN") or None

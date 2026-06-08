@@ -12,7 +12,7 @@ from logging.handlers import RotatingFileHandler
 from flask import (Flask, Response, abort, flash, redirect, render_template,
                    request, session, stream_with_context, url_for)
 
-from config import LOGS_DIR, REPORTS_DIR, SECRET_KEY, LOG_LEVEL
+from config import LOGS_DIR, REPORTS_DIR, SECRET_KEY, LOG_LEVEL, REPORT_ACCESS_TOKEN
 from core.auth import (delete_credentials, get_client_secret, get_password,
                        store_client_secret, store_password)
 from core.comparator import compare_instances
@@ -290,7 +290,8 @@ def compare():
             return render_template("compare.html", instances=instances)
         inst_a = get_instance(id_a)
         inst_b = get_instance(id_b)
-        result = compare_instances(id_a, id_b)
+        picklist_fields = set(request.form.getlist("compare_fields")) or None
+        result = compare_instances(id_a, id_b, picklist_fields=picklist_fields)
         excel_path = generate_excel_report(
             inst_a["alias"], inst_b["alias"], result, inst_a, inst_b
         )
@@ -314,6 +315,8 @@ def compare():
 def view_report(report_id):
     if not re.match(r'^[A-Za-z0-9_\-]{3,160}$', report_id):
         abort(400, 'Invalid report ID')
+    if REPORT_ACCESS_TOKEN and request.args.get("token") != REPORT_ACCESS_TOKEN:
+        abort(403, "Missing or invalid report access token")
     report_path = REPORTS_DIR / f'{report_id}.html'
     try:
         resolved = report_path.resolve()
@@ -330,11 +333,53 @@ def view_report(report_id):
 
 @app.route("/reports/<report_id>/download")
 def download_report(report_id):
+    if REPORT_ACCESS_TOKEN and request.args.get("token") != REPORT_ACCESS_TOKEN:
+        abort(403, "Missing or invalid report access token")
     from flask import send_file
     xlsx = REPORTS_DIR / f"{report_id}.xlsx"
     if not xlsx.exists():
         abort(404)
     return send_file(str(xlsx), as_attachment=True, download_name=xlsx.name)
+
+
+@app.route("/instances/<int:instance_id>/test", methods=["POST"])
+def test_connection(instance_id):
+    """Lightweight connectivity test — fetches $metadata with the stored credentials."""
+    import requests as _req
+    instance = get_instance(instance_id)
+    if not instance:
+        return {"ok": False, "error": "Instance not found"}, 404
+
+    try:
+        metadata_url = f'{instance["base_url"]}/odata/v2/$metadata'
+        headers = {"Accept": "application/xml"}
+        timeout = 15
+
+        if instance.get("auth_type") == "oauth2":
+            from core.auth import fetch_oauth_token, get_client_secret as _gcs
+            secret = _gcs(instance["alias"])
+            if not secret:
+                return {"ok": False, "error": "No client secret stored"}, 400
+            token = fetch_oauth_token(
+                instance["token_url"], instance["client_id"], secret, instance["company_id"]
+            )
+            headers["Authorization"] = f"Bearer {token}"
+            username = pwd = None
+        else:
+            from core.auth import format_basic_username, get_password as _gp
+            pwd = _gp(instance["alias"])
+            if not pwd:
+                return {"ok": False, "error": "No password stored"}, 400
+            username = format_basic_username(instance.get("username"), instance.get("company_id"))
+
+        resp = _req.get(metadata_url, auth=(username, pwd) if username and pwd else None, headers=headers, timeout=timeout)
+        if resp.status_code == 200:
+            return {"ok": True, "message": f"Connected. HTTP {resp.status_code}, {len(resp.content)} bytes"}, 200
+        return {"ok": False, "error": f"HTTP {resp.status_code}: {resp.reason}"}, 400
+
+    except Exception as exc:
+        logger.warning("Connection test failed for instance %s: %s", instance.get("alias"), exc)
+        return {"ok": False, "error": str(exc)}, 400
 
 
 def _form_to_instance(form) -> dict:

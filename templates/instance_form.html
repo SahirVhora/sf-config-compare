@@ -107,6 +107,8 @@
 
     <div class="form-actions">
       <button type="submit" class="btn btn-primary">{{ action }} Instance</button>
+      <button type="button" class="btn btn-outline" onclick="testConnection()" id="test-btn">Test Connection</button>
+      <span id="test-result" class="test-status"></span>
       <a href="{{ url_for('index') }}" class="btn btn-ghost">Cancel</a>
     </div>
   </form>
@@ -128,6 +130,44 @@ function toggleAuth(type) {
     });
   });
 }
+
+function testConnection() {
+  const btn = document.getElementById('test-btn');
+  const result = document.getElementById('test-result');
+  btn.disabled = true;
+  result.textContent = 'Testing...';
+  result.className = 'test-status testing';
+
+  {% if instance %}
+  const instanceId = {{ instance.id }};
+  const csrf = document.querySelector('input[name="csrf_token"]').value;
+  fetch('/instances/' + instanceId + '/test', {
+    method: 'POST',
+    headers: {'X-CSRF-Token': csrf}
+  })
+  .then(r => r.json())
+  .then(data => {
+    btn.disabled = false;
+    if (data.ok) {
+      result.textContent = 'Connected: ' + (data.message || 'OK');
+      result.className = 'test-status success';
+    } else {
+      result.textContent = 'Failed: ' + (data.error || 'Unknown error');
+      result.className = 'test-status error';
+    }
+  })
+  .catch(err => {
+    btn.disabled = false;
+    result.textContent = 'Request failed: ' + err.message;
+    result.className = 'test-status error';
+  });
+  {% else %}
+  result.textContent = 'Save the instance first, then test.';
+  result.className = 'test-status info';
+  btn.disabled = false;
+  {% endif %}
+}
+
 // Set initial state
 const checked = document.querySelector('input[name="auth_type"]:checked');
 if (checked) toggleAuth(checked.value);
