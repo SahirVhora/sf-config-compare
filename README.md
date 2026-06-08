@@ -26,9 +26,9 @@ Public project page: https://sahirvhora.github.io/sf-config-compare/
 
 When running a comparison, you can choose which picklist fields to compare:
 
-- **English label** (`label_en`) — compares the English display name
-- **Status** — compares active/inactive status
-- **Locale labels** (e.g. `locale:en_US`) — compares locale-specific overrides
+- **English label** (`label_en`) - compares the English display name
+- **Status** - compares active/inactive status
+- **Locale labels** (e.g. `locale:en_US`) - compares locale-specific overrides
 
 Unchecking fields you don't need speeds up the comparison and produces a
 cleaner report. By default all three options are enabled.
@@ -101,13 +101,13 @@ unauthorised access when the app is exposed on a network.
 - Compares **OData v2 metadata** and **PickListValueV2** only. MDF objects,
   Foundation Objects, Business Rules, associations, and other configuration
   areas are not compared.
-- The app does **not** sync or write back to any instance — read-only.
+- The app does **not** sync or write back to any instance - read-only.
 - Concurrent pulls are limited to 3 at a time (semaphore). Running multiple
   gunicorn workers will break the in-memory pull status tracking; the app is
   designed for `workers=1`.
 - Report HTML is capped at 500 picklist rows per section. Download the Excel
   export for the full dataset.
-- Pull history is not preserved — each pull overwrites the previous data.
+- Pull history is not preserved - each pull overwrites the previous data.
   Schema drift tracking across time is a future feature.
 
 ## Local Data
