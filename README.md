@@ -148,6 +148,6 @@ One of 10 free, open tools for SAP SuccessFactors consultants. Explore the full 
 
 Related tools:
 
-- [ObjectSync](https://github.com/SahirVhora/SAPSF_ObjectSync) - Sync OM foundation objects PRD to Dev
+- [ObjectSync](https://github.com/SahirVhora/sf-object-sync) - Sync OM foundation objects PRD to Dev
 - [Config Debt Radar](https://github.com/SahirVhora/sf-config-debt-radar) - Scan EC configuration debt - CLI, dashboard, MCP server
 - [Position Integrity Checker](https://github.com/SahirVhora/sf-position-integrity-checker) - Validate position data integrity
