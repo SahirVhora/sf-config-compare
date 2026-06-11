@@ -288,8 +288,9 @@ def browse(instance_id):
 def compare():
     instances = get_all_instances()
     if request.method == "POST":
-        id_a = int(request.form["instance_a"])
-        id_b = int(request.form["instance_b"])
+        id_a = int(request.form.get("instance_a", 0))
+        id_b = int(request.form.get("instance_b", 0))
+        object_name = request.form.get("object_name", "").strip()
         if id_a == id_b:
             flash("Please select two different instances.", "error")
             return render_template("compare.html", instances=instances)
