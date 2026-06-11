@@ -1,10 +1,11 @@
 import json
 import logging
-import re
 import time
 import requests
 from requests.auth import HTTPBasicAuth
-from datetime import date, datetime, timezone
+from datetime import date, datetime
+
+from sapsf_shared.utils import parse_sf_date
 
 from core.auth import (fetch_oauth_token, format_basic_username,
                        get_client_secret, get_password)
@@ -17,16 +18,6 @@ PAGE_SIZE = 1000
 
 # Label columns to collect into all_labels
 _LABEL_PREFIX = "label_"
-_SF_DATE_RE = re.compile(r"/Date\((-?\d+)\)/")
-
-
-def _parse_sf_date(val) -> date | None:
-    if not val:
-        return None
-    m = _SF_DATE_RE.match(str(val))
-    if m:
-        return datetime.fromtimestamp(int(m.group(1)) / 1000, tz=timezone.utc).date()
-    return None
 
 
 def pull_picklist(instance: dict, emit_fn=None) -> dict:
@@ -126,8 +117,8 @@ def _write_to_db(results: list, instance_id: int, pull_timestamp: str) -> dict:
         conn.execute("DELETE FROM picklist_values WHERE instance_id = ?", (instance_id,))
 
         for item in results:
-            valid_from = _parse_sf_date(item.get("validFrom"))
-            valid_to = _parse_sf_date(item.get("validTo"))
+            valid_from = parse_sf_date(item.get("validFrom"))
+            valid_to = parse_sf_date(item.get("validTo"))
             if valid_from and valid_from > today:
                 continue
             if valid_to and valid_to < today:

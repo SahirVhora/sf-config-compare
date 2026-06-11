@@ -4,3 +4,6 @@ openpyxl>=3.1.0
 keyring>=24.0.0
 python-dotenv>=1.0.0
 gunicorn>=22.0.0
+
+# Shared SAP SF SDK (OData utils; incremental adoption)
+sapsf-shared @ git+https://github.com/SahirVhora/sapsf-shared
