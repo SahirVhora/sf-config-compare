@@ -6,4 +6,4 @@ python-dotenv>=1.0.0
 gunicorn>=22.0.0
 
 # Shared SAP SF SDK (OData utils; incremental adoption)
-sapsf-shared @ git+https://github.com/SahirVhora/sapsf-shared
+sapsf-shared>=0.1.0
