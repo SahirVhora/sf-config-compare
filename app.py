@@ -350,7 +350,7 @@ def download_report(report_id):
 
 @app.route("/instances/<int:instance_id>/test", methods=["POST"])
 def test_connection(instance_id):
-    """Lightweight connectivity test — fetches $metadata with the stored credentials."""
+    """Lightweight connectivity test - fetches $metadata with the stored credentials."""
     import requests as _req
     instance = get_instance(instance_id)
     if not instance:

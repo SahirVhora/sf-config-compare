@@ -1,4 +1,4 @@
-"""Config smoke tests — no SF connectivity required."""
+"""Config smoke tests - no SF connectivity required."""
 
 import importlib
 import sys
