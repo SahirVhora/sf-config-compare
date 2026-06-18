@@ -9,7 +9,7 @@ from sapsf_shared.utils import parse_sf_date
 
 from core.auth import (fetch_oauth_token, format_basic_username,
                        get_client_secret, get_password)
-from core.db import get_conn
+from core.db import get_conn, record_pull_history
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,7 @@ def pull_picklist(instance: dict, emit_fn=None) -> dict:
         if emit_fn:
             emit_fn(step, status, message, pct)
 
+    history_id = record_pull_history(instance['id'], 'picklist', 'pending')
     emit("init", "in-progress", "Starting picklist pull via OData API", 5)
 
     try:
@@ -46,12 +47,18 @@ def pull_picklist(instance: dict, emit_fn=None) -> dict:
         emit("store", "in-progress", f"Storing {len(all_results)} picklist values", 80)
         stats = _write_to_db(all_results, instance["id"], datetime.now().isoformat())
 
+        record_pull_history(instance['id'], 'picklist', 'success',
+                            picklists_count=stats['total_picklists'],
+                            values_count=stats['total_values'],
+                            history_id=history_id)
         duration = round(time.time() - start, 2)
         emit("done", "success",
              f"Stored {stats['total_values']} values across {stats['total_picklists']} picklists", 100)
         return {"success": True, "duration_seconds": duration, **stats}
 
     except Exception as exc:
+        record_pull_history(instance['id'], 'picklist', 'error',
+                            error=str(exc), history_id=history_id)
         duration = round(time.time() - start, 2)
         emit("error", "error", str(exc), 0)
         logger.exception("Picklist pull failed for %s", alias)

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Pull History - {{ instance.alias }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Pull History: {{ instance.alias }}</h1>
+  <a href="{{ url_for('index') }}" class="btn btn-outline">Back to Instances</a>
+</div>
+
+{% if not history %}
+<div class="info-box">No pull history recorded for this instance yet.</div>
+{% else %}
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Type</th>
+      <th>Status</th>
+      <th>Entities</th>
+      <th>Fields</th>
+      <th>Picklists</th>
+      <th>Values</th>
+      <th>Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for h in history %}
+    <tr>
+      <td>{{ h.started_at }}</td>
+      <td>{{ h.pull_type }}</td>
+      <td>
+        {% if h.status == 'success' %}<span class="badge badge-success">Success</span>
+        {% elif h.status == 'error' %}<span class="badge badge-danger">Error</span>
+        {% else %}<span class="badge badge-pending">{{ h.status }}</span>{% endif %}
+      </td>
+      <td>{{ h.entities_count or '-' }}</td>
+      <td>{{ h.fields_count or '-' }}</td>
+      <td>{{ h.picklists_count or '-' }}</td>
+      <td>{{ h.values_count or '-' }}</td>
+      <td class="text-muted">{{ h.error or '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

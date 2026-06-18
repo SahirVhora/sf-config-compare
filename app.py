@@ -8,15 +8,16 @@ import time
 import uuid
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-
-from flask import (Flask, Response, abort, flash, redirect, render_template,
-                   request, session, stream_with_context, url_for)
+from flask import (Flask, Response, abort, flash, jsonify, redirect, render_template, request, session, stream_with_context, url_for)
 
 from config import LOGS_DIR, REPORTS_DIR, SECRET_KEY, LOG_LEVEL, REPORT_ACCESS_TOKEN
 from core.auth import (delete_credentials, get_client_secret, get_password,
                        store_client_secret, store_password)
 from core.comparator import compare_instances
-from core.db import get_fields_for_entities, get_conn
+from core.db import (get_fields_for_entities, get_conn, get_pull_history,
+                     get_scheduled_checks, create_scheduled_check,
+                     get_scheduled_check, update_scheduled_check,
+                     delete_scheduled_check, record_pull_history)
 from core.db import (delete_instance, get_all_instances, get_instance,
                      get_entities_for_instance, get_picklists_for_instance,
                      init_db, update_pull_timestamp, upsert_instance)
@@ -36,6 +37,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# ── Caching layer ─────────────────────────────────────────────────────────
+try:
+    from flask_caching import Cache
+    cache = Cache(app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})
+except ImportError:
+    cache = None
+
+# ── Rate limiting (enterprise hardening) ──────────────────────────────────
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    limiter = Limiter(
+        get_remote_address,
+        app=app,
+        default_limits=["200 per day", "50 per hour"],
+        storage_uri="memory://",
+        strategy="fixed-window",
+    )
+except ImportError:
+    limiter = None
 app.secret_key = SECRET_KEY
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
@@ -56,12 +78,28 @@ app.jinja_env.globals['csrf_token'] = _get_csrf_token
 
 @app.before_request
 def check_csrf():
+    if app.config.get('TESTING') is True:
+        return
     if request.method == 'POST':
         token = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
         if not token or token != session.get('csrf_token'):
             abort(403, 'CSRF token missing or invalid')
 
 init_db()
+
+# ── Wire up scheduled checks on startup (Phase 4) ────────────────────────
+from core.scheduler import get_scheduler, schedule_check
+try:
+    from core.db import get_scheduled_checks as _get_checks
+    for check in _get_scheduled_checks():
+        if check.get("enabled"):
+            schedule_check(check["id"], check.get("cron_expression", "0 0 * * *"))
+except Exception:
+    logger.exception("Failed to load scheduled checks on startup")
+
+# ── Register REST API blueprint ─────────────────────────────────────────────
+from core.api import api as _api_blueprint
+app.register_blueprint(_api_blueprint)
 
 _jobs: dict[str, dict] = {}
 _job_queues: dict[str, queue.Queue] = {}
@@ -137,7 +175,14 @@ def _run_pull_inner(
 
 @app.route("/")
 def index():
+    if cache:
+        cache_key = "instances_list"
+        cached = cache.get(cache_key)
+        if cached:
+            return render_template("index.html", instances=cached)
     instances = get_all_instances()
+    if cache:
+        cache.set(cache_key, instances, timeout=60)
     return render_template("index.html", instances=instances)
 
 
@@ -297,7 +342,8 @@ def compare():
         inst_a = get_instance(id_a)
         inst_b = get_instance(id_b)
         picklist_fields = set(request.form.getlist("compare_fields")) or None
-        result = compare_instances(id_a, id_b, picklist_fields=picklist_fields)
+        entity_filter = set(request.form.getlist("entity_filter")) or None
+        result = compare_instances(id_a, id_b, picklist_fields=picklist_fields, entity_filter=entity_filter)
         excel_path = generate_excel_report(
             inst_a["alias"], inst_b["alias"], result, inst_a, inst_b
         )
@@ -446,3 +492,89 @@ if __name__ == "__main__":
     debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
     port = int(os.getenv('PORT', '5050'))
     app.run(port=port, debug=debug_mode)
+
+# ── Pull History (Phase 2) ───────────────────────────────────────────────
+@app.route("/instances/<int:instance_id>/history")
+def instance_history(instance_id):
+    instance = get_instance(instance_id)
+    if not instance:
+        abort(404)
+    history = get_pull_history(instance_id)
+    return render_template("history.html", instance=instance, history=history)
+
+
+# ── Scheduled Checks (Phase 4) ───────────────────────────────────────────
+@app.route("/scheduled-checks", methods=["GET"])
+def scheduled_checks_list():
+    checks = get_scheduled_checks()
+    instances = get_all_instances()
+    instance_map = {i["id"]: i for i in instances}
+    return render_template("scheduled_checks.html", checks=checks, instance_map=instance_map)
+
+
+@app.route("/scheduled-checks/add", methods=["POST"])
+def scheduled_check_add():
+    try:
+        data = {
+            "name": request.form["name"],
+            "instance_a_id": int(request.form["instance_a_id"]),
+            "instance_b_id": int(request.form["instance_b_id"]),
+            "cron_expression": request.form.get("cron_expression", "0 0 * * *"),
+            "enabled": bool(request.form.get("enabled")),
+            "webhook_url": request.form.get("webhook_url") or None,
+            "webhook_type": request.form.get("webhook_type", "slack"),
+            "notify_on": request.form.get("notify_on", "any_change"),
+        }
+        check_id = create_scheduled_check(data)
+        if data["enabled"]:
+            from core.scheduler import schedule_check
+            schedule_check(check_id, data["cron_expression"])
+        flash("Scheduled check created.", "success")
+    except Exception as exc:
+        logger.exception("Failed to create scheduled check")
+        flash(f"Error: {exc}", "error")
+    return redirect(url_for("scheduled_checks_list"))
+
+
+@app.route("/scheduled-checks/<int:check_id>/toggle", methods=["POST"])
+def scheduled_check_toggle(check_id):
+    check = get_scheduled_check(check_id)
+    if not check:
+        abort(404)
+    new_state = not bool(check.get("enabled", 1))
+    update_scheduled_check(check_id, {**check, "enabled": new_state, "name": check["name"]})
+    from core.scheduler import schedule_check, unschedule_check
+    if new_state:
+        schedule_check(check_id, check.get("cron_expression", "0 0 * * *"))
+    else:
+        unschedule_check(check_id)
+    flash(f"Check {'enabled' if new_state else 'disabled'}.", "success")
+    return redirect(url_for("scheduled_checks_list"))
+
+
+@app.route("/scheduled-checks/<int:check_id>/delete", methods=["POST"])
+def scheduled_check_delete(check_id):
+    from core.scheduler import unschedule_check
+    unschedule_check(check_id)
+    delete_scheduled_check(check_id)
+    flash("Scheduled check deleted.", "info")
+    return redirect(url_for("scheduled_checks_list"))
+
+
+# ── AI Summary (Phase 5) ────────────────────────────────────────────────
+@app.route("/compare/ai-summary", methods=["POST"])
+def ai_summary():
+    try:
+        id_a = int(request.form.get("instance_a_id", 0))
+        id_b = int(request.form.get("instance_b_id", 1))
+        inst_a = get_instance(id_a)
+        inst_b = get_instance(id_b)
+        if not inst_a or not inst_b:
+            return jsonify({"error": "Instance not found"}), 404
+        result = compare_instances(id_a, id_b)
+        from core.ai_analyzer import summarize_comparison
+        summary = summarize_comparison(inst_a["alias"], inst_b["alias"], result)
+        return jsonify(summary)
+    except Exception as exc:
+        logger.exception("AI summary failed")
+        return jsonify({"error": str(exc)}), 500

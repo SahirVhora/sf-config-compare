@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 from requests.auth import HTTPBasicAuth
 from datetime import datetime
 
+from core.db import record_pull_history
 from core.auth import (fetch_oauth_token, format_basic_username,
                        get_client_secret, get_password)
 from core.db import get_conn
@@ -39,6 +40,7 @@ def pull_odata_metadata(instance: dict, emit_fn=None) -> dict:
 
     emit("init", "in-progress", "Starting OData metadata pull", 5)
 
+    history_id = record_pull_history(instance["id"], "metadata", "pending")
     try:
         auth_headers, auth_obj = _build_auth(instance, alias, emit)
 
@@ -65,6 +67,10 @@ def pull_odata_metadata(instance: dict, emit_fn=None) -> dict:
         emit("store", "in-progress", f"Storing {len(entities)} entities, {sum(len(f) for f in fields.values())} fields", 75)
         pull_ts = datetime.now().isoformat()
         stats = _write_to_db(instance["id"], pull_ts, entities, fields)
+        record_pull_history(instance["id"], "metadata", "success",
+                            entities_count=stats["entities_count"],
+                            fields_count=stats["fields_count"],
+                            history_id=history_id)
 
         duration = round(time.time() - start, 2)
         emit("done", "success",
@@ -72,6 +78,8 @@ def pull_odata_metadata(instance: dict, emit_fn=None) -> dict:
         return {"success": True, "duration_seconds": duration, **stats}
 
     except Exception as exc:
+        record_pull_history(instance['id'], 'metadata', 'error',
+                            error=str(exc), history_id=history_id)
         duration = round(time.time() - start, 2)
         emit("error", "error", str(exc), 0)
         logger.exception("OData metadata pull failed for %s", alias)
@@ -200,10 +208,18 @@ def _parse_entity_types(root: ET.Element, entity_labels: dict) -> tuple[list, di
 
 
 def _write_to_db(instance_id: int, pull_timestamp: str, entities: list, fields: dict) -> dict:
+    """Persist parsed metadata to SQLite inside a single transaction for speed and consistency.
+
+    Deletes stale data first, then inserts new entities and fields atomically.
+    If any step fails, the entire pull is rolled back so the DB is never left
+    in a half-written state.
+    """
+    from core.db import transaction
+
     entities_count = 0
     fields_count = 0
 
-    with get_conn() as conn:
+    with transaction() as conn:
         conn.execute(
             "DELETE FROM metadata_fields WHERE entity_id IN "
             "(SELECT id FROM metadata_entities WHERE instance_id = ?)",

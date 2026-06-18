@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Scheduled Checks - SF Config Compare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Scheduled Drift Checks</h1>
+</div>
+
+<div class="form-card">
+  <h2>Create New Check</h2>
+  <form action="{{ url_for('scheduled_check_add') }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="name" required class="input-field">
+    </div>
+    <div class="form-group">
+      <label>Instance A</label>
+      <select name="instance_a_id" required class="select-field">
+        <option value="">- select -</option>
+        {% for inst in instance_map.values() %}
+        <option value="{{ inst.id }}">{{ inst.alias }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Instance B</label>
+      <select name="instance_b_id" required class="select-field">
+        <option value="">- select -</option>
+        {% for inst in instance_map.values() %}
+        <option value="{{ inst.id }}">{{ inst.alias }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Cron Expression</label>
+      <input type="text" name="cron_expression" value="0 0 * * *" class="input-field">
+      <p class="muted">Default: daily at midnight UTC</p>
+    </div>
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input type="checkbox" name="enabled" checked> Enabled
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Webhook URL (optional)</label>
+      <input type="url" name="webhook_url" class="input-field" placeholder="https://hooks.slack.com/...">
+    </div>
+    <div class="form-group">
+      <label>Webhook Type</label>
+      <select name="webhook_type" class="select-field">
+        <option value="slack">Slack</option>
+        <option value="teams">Microsoft Teams</option>
+        <option value="generic">Generic JSON</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notify On</label>
+      <select name="notify_on" class="select-field">
+        <option value="any_change">Any change</option>
+        <option value="drift_only">Drift only</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Create Check</button>
+    </div>
+  </form>
+</div>
+
+{% if checks %}
+<table class="data-table">
+  <thead>
+    <tr><th>Name</th><th>Instances</th><th>Cron</th><th>Status</th><th>Last Run</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+    {% for check in checks %}
+    <tr>
+      <td>{{ check.name }}</td>
+      <td>{{ instance_map[check.instance_a_id].alias }} vs {{ instance_map[check.instance_b_id].alias }}</td>
+      <td><code>{{ check.cron_expression }}</code></td>
+      <td>
+        {% if check.enabled %}<span class="badge badge-success">Enabled</span>
+        {% else %}<span class="badge badge-secondary">Disabled</span>{% endif %}
+      </td>
+      <td>{{ check.last_run_at or 'Never' }}</td>
+      <td>
+        <form action="{{ url_for('scheduled_check_toggle', check_id=check.id) }}" method="post" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline">{{ 'Disable' if check.enabled else 'Enable' }}</button>
+        </form>
+        <form action="{{ url_for('scheduled_check_delete', check_id=check.id) }}" method="post" style="display:inline"
+              onsubmit="return confirm('Delete this check?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="info-box">No scheduled checks configured yet.</div>
+{% endif %}
+{% endblock %}

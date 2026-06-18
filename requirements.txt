@@ -1,9 +1,16 @@
-flask>=3.0.0
+flask>=3.0.2
 requests>=2.31.0
 openpyxl>=3.1.0
 keyring>=24.0.0
 python-dotenv>=1.0.0
-gunicorn>=22.0.0
+gunicorn>=22.0.1
+flask-limiter>=3.5.1
+flask-caching>=2.1.1
+apscheduler>=3.10.0
+openai>=1.0.1
+pytest>=7.4.0
+pytest-flask>=1.2.0
+requests-mock>=1.11.0
 
 # Shared SAP SF SDK (OData utils; incremental adoption)
 sapsf-shared>=0.1.0

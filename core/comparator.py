@@ -17,9 +17,9 @@ def _norm_status(value) -> str:
     return "ACTIVE" if raw in ACTIVE_STATUSES else raw
 
 
-def compare_instances(instance_a_id: int, instance_b_id: int, picklist_fields: set | None = None) -> dict:
-    entities_a = _load_entities(instance_a_id)
-    entities_b = _load_entities(instance_b_id)
+def compare_instances(instance_a_id: int, instance_b_id: int, picklist_fields: set | None = None, entity_filter: set | None = None) -> dict:
+    entities_a = _load_entities(instance_a_id, entity_filter)
+    entities_b = _load_entities(instance_b_id, entity_filter)
 
     names_a = set(entities_a)
     names_b = set(entities_b)
@@ -39,8 +39,8 @@ def compare_instances(instance_a_id: int, instance_b_id: int, picklist_fields: s
     fields_with_diff = 0
     fields_only_in_a = 0
     fields_only_in_b = 0
-    fields_by_entity_a = _load_fields_by_entity(instance_a_id)
-    fields_by_entity_b = _load_fields_by_entity(instance_b_id)
+    fields_by_entity_a = _load_fields_by_entity(instance_a_id, entity_filter)
+    fields_by_entity_b = _load_fields_by_entity(instance_b_id, entity_filter)
 
     for entity_name in in_both:
         ent_a = entities_a[entity_name]
@@ -172,8 +172,8 @@ def _compare_picklists(instance_a_id: int, instance_b_id: int, fields: set | Non
                     for k, v in raw_labels.items()
                     if _clean_text(k) and _clean_text(v)
                 }
-            except Exception:
-                pass
+            except (_json.JSONDecodeError, TypeError):
+                all_labels = {}
             idx[key] = {
                 "label_en": _clean_text(r["label_en"]),
                 "status": _norm_status(r["status"]),
@@ -190,7 +190,6 @@ def _compare_picklists(instance_a_id: int, instance_b_id: int, fields: set | Non
     pids_only_b = pids_b - pids_a
     pids_shared = pids_a & pids_b
 
-    # Count values per picklist for the "whole picklist missing" entries
     def counts_by_picklist(idx):
         c: dict[str, int] = {}
         for pl_id, _ in idx:
@@ -274,34 +273,34 @@ def _compare_picklists(instance_a_id: int, instance_b_id: int, fields: set | Non
     }, summary
 
 
-def _load_entities(instance_id: int) -> dict:
+def _load_entities(instance_id: int, entity_filter: set | None = None) -> dict:
+    sql = "SELECT * FROM metadata_entities WHERE instance_id = ?"
+    params: list = [instance_id]
+    if entity_filter:
+        placeholders = ",".join("?" * len(entity_filter))
+        sql += f" AND entity_name IN ({placeholders})"
+        params.extend(sorted(entity_filter))
     with get_conn() as conn:
-        rows = conn.execute(
-            "SELECT * FROM metadata_entities WHERE instance_id = ?", (instance_id,)
-        ).fetchall()
+        rows = conn.execute(sql, params).fetchall()
     return {r["entity_name"]: dict(r) for r in rows}
 
 
-def _load_fields(entity_id: int) -> list:
-    with get_conn() as conn:
-        return [dict(r) for r in conn.execute(
-            "SELECT * FROM metadata_fields WHERE entity_id = ?", (entity_id,)
-        ).fetchall()]
-
-
-def _load_fields_by_entity(instance_id: int) -> dict[int, list]:
+def _load_fields_by_entity(instance_id: int, entity_filter: set | None = None) -> dict[int, list]:
     by_entity: dict[int, list] = {}
+    sql = """
+        SELECT f.*
+        FROM metadata_fields f
+        JOIN metadata_entities e ON e.id = f.entity_id
+        WHERE e.instance_id = ?
+    """
+    params: list = [instance_id]
+    if entity_filter:
+        placeholders = ",".join("?" * len(entity_filter))
+        sql += f" AND e.entity_name IN ({placeholders})"
+        params.extend(sorted(entity_filter))
+    sql += " ORDER BY f.entity_id, f.field_id"
     with get_conn() as conn:
-        rows = conn.execute(
-            """
-            SELECT f.*
-            FROM metadata_fields f
-            JOIN metadata_entities e ON e.id = f.entity_id
-            WHERE e.instance_id = ?
-            ORDER BY f.entity_id, f.field_id
-            """,
-            (instance_id,),
-        ).fetchall()
+        rows = conn.execute(sql, params).fetchall()
     for row in rows:
         item = dict(row)
         by_entity.setdefault(item["entity_id"], []).append(item)
