@@ -17,11 +17,13 @@ from core.comparator import compare_instances
 from core.db import (get_fields_for_entities, get_conn, get_pull_history,
                      get_scheduled_checks, create_scheduled_check,
                      get_scheduled_check, update_scheduled_check,
-                     delete_scheduled_check, record_pull_history)
+                     delete_scheduled_check)
 from core.db import (delete_instance, get_all_instances, get_instance,
                      get_entities_for_instance, get_picklists_for_instance,
                      init_db, update_pull_timestamp, upsert_instance)
+from core.api import api as _api_blueprint
 from core.reporter import generate_excel_report, generate_html_report
+from core.scheduler import schedule_check
 
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -88,17 +90,14 @@ def check_csrf():
 init_db()
 
 # ── Wire up scheduled checks on startup (Phase 4) ────────────────────────
-from core.scheduler import get_scheduler, schedule_check
 try:
-    from core.db import get_scheduled_checks as _get_checks
-    for check in _get_scheduled_checks():
+    for check in get_scheduled_checks():
         if check.get("enabled"):
             schedule_check(check["id"], check.get("cron_expression", "0 0 * * *"))
 except Exception:
     logger.exception("Failed to load scheduled checks on startup")
 
 # ── Register REST API blueprint ─────────────────────────────────────────────
-from core.api import api as _api_blueprint
 app.register_blueprint(_api_blueprint)
 
 _jobs: dict[str, dict] = {}
@@ -335,7 +334,6 @@ def compare():
     if request.method == "POST":
         id_a = int(request.form.get("instance_a", 0))
         id_b = int(request.form.get("instance_b", 0))
-        object_name = request.form.get("object_name", "").strip()
         if id_a == id_b:
             flash("Please select two different instances.", "error")
             return render_template("compare.html", instances=instances)

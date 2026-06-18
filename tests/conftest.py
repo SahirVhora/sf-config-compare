@@ -5,7 +5,6 @@ or HTTP mocking boilerplate.
 """
 
 import json
-import os
 import sys
 import tempfile
 from pathlib import Path
@@ -22,18 +21,18 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import config as _config_mod
+import config as _config_mod  # noqa: E402
 
 _config_mod.DB_PATH = TEST_DB
 
 # Now it's safe to import modules that reference DB_PATH
-import core.db as _db_mod
+import core.db as _db_mod  # noqa: E402
 
 _db_mod.DB_PATH = TEST_DB
 
-from app import app as _flask_app
-from core.db import get_conn, init_db, upsert_instance
-import pytest
+from app import app as _flask_app  # noqa: E402
+from core.db import get_conn, init_db, upsert_instance  # noqa: E402
+import pytest  # noqa: E402
 
 
 # ── Fixtures ───────────────────────────────────────────────────────────────

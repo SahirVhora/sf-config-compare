@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import threading
 from typing import Any
 
@@ -25,7 +24,6 @@ def get_scheduler() -> Any | None:
         return _scheduler
     try:
         from apscheduler.schedulers.background import BackgroundScheduler
-        from apscheduler.triggers.cron import CronTrigger
     except ImportError:
         logger.warning("APScheduler not installed; scheduled checks disabled.")
         return None
@@ -89,7 +87,6 @@ def run_drift_check(check_id: int) -> dict:
     from core.comparator import compare_instances
     from core.reporter import generate_excel_report, generate_html_report
     from config import REPORTS_DIR
-    import requests as _req
 
     check = get_scheduled_check(check_id)
     if not check:
@@ -188,7 +185,7 @@ def _send_webhook(check: dict, result: dict, report_id: str | None) -> bool:
 
     if webhook_type == "slack":
         payload = {
-            "text": f"SF Config Compare drift detected",
+            "text": "SF Config Compare drift detected",
             "attachments": [{
                 "color": "danger" if total_issues > 0 else "good",
                 "fields": [

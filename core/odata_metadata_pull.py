@@ -9,7 +9,6 @@ from datetime import datetime
 from core.db import record_pull_history
 from core.auth import (fetch_oauth_token, format_basic_username,
                        get_client_secret, get_password)
-from core.db import get_conn
 
 logger = logging.getLogger(__name__)
 

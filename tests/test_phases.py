@@ -5,11 +5,9 @@ Run with: pytest tests/test_phases.py -v
 
 import json
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 
-from app import app as flask_app
 from core.comparator import compare_instances
 from core.scheduler import run_drift_check
 from core import ai_analyzer

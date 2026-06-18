@@ -9,13 +9,10 @@ All endpoints return standard JSON. Errors use RFC 7807-inspired shape:
 
 from __future__ import annotations
 
-import json
 import logging
-from typing import Any
 
 from flask import Blueprint, abort, jsonify, request
 
-from core.auth import delete_credentials, get_client_secret, get_password
 from core.comparator import compare_instances
 from core.db import get_all_instances, get_instance
 from core.reporter import generate_excel_report, generate_html_report
