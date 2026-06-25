@@ -3,6 +3,7 @@ import logging
 import time
 import requests
 import xml.etree.ElementTree as ET
+from defusedxml.ElementTree import fromstring as _safe_fromstring
 from requests.auth import HTTPBasicAuth
 from datetime import datetime
 
@@ -52,7 +53,7 @@ def pull_odata_metadata(instance: dict, emit_fn=None) -> dict:
         logger.debug("Response status: %s, Content-Type: %s", resp.status_code, resp.headers.get("Content-Type"))
         logger.debug("Response snippet: %s", resp.text[:500])
         try:
-            root = ET.fromstring(resp.content)
+            root = _safe_fromstring(resp.content)
         except ET.ParseError as parse_err:
             snippet = resp.text[:800].replace("\n", " ")
             raise RuntimeError(
