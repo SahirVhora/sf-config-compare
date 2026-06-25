@@ -125,19 +125,14 @@ def sample_instances():
 
 @pytest.fixture
 def mock_auth_password():
-    """Patch get_password in all modules that import it directly."""
+    """Patch get_password at its canonical location in core.auth."""
     with patch("core.auth.get_password", return_value="dummy_password_123"):
-        with patch("core.odata_metadata_pull.get_password", return_value="dummy_password_123"):
-            with patch("core.picklist_pull.get_password", return_value="dummy_password_123"):
-                yield
+        yield
 
 
 @pytest.fixture
 def mock_oauth_secret():
-    """Patch get_client_secret and fetch_oauth_token in all relevant modules."""
+    """Patch get_client_secret and OAuth2Auth.fetch_token at their canonical locations."""
     with patch("core.auth.get_client_secret", return_value="dummy_secret_456"):
-        with patch("core.odata_metadata_pull.get_client_secret", return_value="dummy_secret_456"):
-            with patch("core.odata_metadata_pull.fetch_oauth_token", return_value="mock_token_abc"):
-                with patch("core.picklist_pull.get_client_secret", return_value="dummy_secret_456"):
-                    with patch("core.picklist_pull.fetch_oauth_token", return_value="mock_token_abc"):
-                        yield
+        with patch("sapsf_shared.auth.OAuth2Auth.fetch_token", return_value="mock_token_abc"):
+            yield

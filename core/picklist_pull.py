@@ -2,13 +2,11 @@ import json
 import logging
 import time
 import requests
-from requests.auth import HTTPBasicAuth
 from datetime import date, datetime
 
 from sapsf_shared.utils import parse_sf_date
 
-from core.auth import (fetch_oauth_token, format_basic_username,
-                       get_client_secret, get_password)
+from core.auth import build_instance_auth
 from core.db import get_conn, record_pull_history
 
 logger = logging.getLogger(__name__)
@@ -68,21 +66,10 @@ def pull_picklist(instance: dict, emit_fn=None) -> dict:
 def _build_auth(instance: dict, alias: str, emit):
     """Return (headers_dict, requests_auth_or_None) for the instance auth type."""
     if instance["auth_type"] == "oauth2":
-        secret = get_client_secret(alias)
-        if not secret:
-            raise RuntimeError("OAuth client secret not found in keyring")
         emit("auth", "in-progress", "Fetching OAuth token", 10)
-        token = fetch_oauth_token(
-            instance["token_url"], instance["client_id"], secret, instance["company_id"]
-        )
-        return {"Authorization": f"Bearer {token}"}, None
     else:
-        password = get_password(alias)
-        if not password:
-            raise RuntimeError("Password not found in keyring")
-        username = format_basic_username(instance["username"], instance["company_id"])
-        emit("auth", "in-progress", f"Using basic auth user {username}", 10)
-        return {}, HTTPBasicAuth(username, password)
+        emit("auth", "in-progress", f"Using basic auth for {alias}", 10)
+    return build_instance_auth(instance, alias)
 
 
 def _fetch_all_pages(base_url: str, headers: dict, auth, emit) -> list:

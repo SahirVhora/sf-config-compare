@@ -538,8 +538,8 @@ class TestIntegrationODataPull:
             status_code=200,
         )
 
-        with patch("core.odata_metadata_pull.get_client_secret", return_value="dummy_secret_456"):
-            with patch("core.odata_metadata_pull.fetch_oauth_token", return_value="mock_token_123"):
+        with patch("core.auth.get_client_secret", return_value="dummy_secret_456"):
+            with patch("sapsf_shared.auth.OAuth2Auth.fetch_token", return_value="mock_token_123"):
                 result = pull_odata_metadata(instance)
         assert result["success"] is True
         assert result["entities_count"] == 2

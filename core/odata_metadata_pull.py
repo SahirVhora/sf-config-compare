@@ -4,12 +4,10 @@ import time
 import requests
 import xml.etree.ElementTree as ET
 from defusedxml.ElementTree import fromstring as _safe_fromstring
-from requests.auth import HTTPBasicAuth
 from datetime import datetime
 
 from core.db import record_pull_history
-from core.auth import (fetch_oauth_token, format_basic_username,
-                       get_client_secret, get_password)
+from core.auth import build_instance_auth
 
 logger = logging.getLogger(__name__)
 
@@ -87,22 +85,12 @@ def pull_odata_metadata(instance: dict, emit_fn=None) -> dict:
 
 
 def _build_auth(instance: dict, alias: str, emit):
-    if instance["auth_type"] == "oauth2":
-        secret = get_client_secret(alias)
-        if not secret:
-            raise RuntimeError("OAuth client secret not found in keyring")
+    auth_type = instance["auth_type"]
+    if auth_type == "oauth2":
         emit("auth", "in-progress", "Fetching OAuth token", 10)
-        token = fetch_oauth_token(
-            instance["token_url"], instance["client_id"], secret, instance["company_id"]
-        )
-        return {"Authorization": f"Bearer {token}"}, None
     else:
-        password = get_password(alias)
-        if not password:
-            raise RuntimeError("Password not found in keyring")
-        username = format_basic_username(instance["username"], instance["company_id"])
-        emit("auth", "in-progress", f"Using basic auth user {username}", 10)
-        return {}, HTTPBasicAuth(username, password)
+        emit("auth", "in-progress", f"Using basic auth for {alias}", 10)
+    return build_instance_auth(instance, alias)
 
 
 def _collect_entity_labels(root: ET.Element) -> dict[str, str]:
