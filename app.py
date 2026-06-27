@@ -18,7 +18,7 @@ from core.auth import (
     store_client_secret,
     store_password,
 )
-from core.comparator import compare_instances
+from core.comparator import compare_instances, compare_instances_matrix
 from core.db import (
     create_scheduled_check,
     delete_instance,
@@ -37,7 +37,12 @@ from core.db import (
     update_scheduled_check,
     upsert_instance,
 )
-from core.reporter import generate_excel_report, generate_html_report
+from core.reporter import (
+    generate_excel_report,
+    generate_html_report,
+    generate_matrix_excel_report,
+    generate_matrix_html_report,
+)
 from core.scheduler import schedule_check
 from flask import (
     Flask,
@@ -622,6 +627,52 @@ def scheduled_check_delete(check_id):
     delete_scheduled_check(check_id)
     flash("Scheduled check deleted.", "info")
     return redirect(url_for("scheduled_checks_list"))
+
+
+# ── Matrix Comparison (N instances) ────────────────────────────────────
+@app.route("/matrix", methods=["GET", "POST"])
+def matrix_compare():
+    instances = get_all_instances()
+    if request.method == "POST":
+        raw_ids = request.form.getlist("instance_ids[]")
+        try:
+            instance_ids = [int(i) for i in raw_ids]
+        except (ValueError, TypeError):
+            flash("Invalid instance IDs.", "error")
+            return render_template("matrix.html", instances=instances)
+        if len(instance_ids) < 2:
+            flash("Select at least 2 instances for matrix comparison.", "error")
+            return render_template("matrix.html", instances=instances)
+        if len(instance_ids) > 10:
+            flash(
+                "Comparing more than 10 instances may be slow. Proceeding anyway.",
+                "warning",
+            )
+        selected_instances = [get_instance(iid) for iid in instance_ids]
+        if any(inst is None for inst in selected_instances):
+            flash("One or more instances not found.", "error")
+            return render_template("matrix.html", instances=instances)
+        picklist_fields = set(request.form.getlist("compare_fields")) or None
+        entity_filter = set(request.form.getlist("entity_filter")) or None
+        result = compare_instances_matrix(
+            instance_ids, picklist_fields=picklist_fields, entity_filter=entity_filter
+        )
+        aliases = [inst["alias"] for inst in selected_instances]
+        excel_path = generate_matrix_excel_report(aliases, result, selected_instances)
+        report_id = excel_path.stem
+        html_content = generate_matrix_html_report(
+            aliases,
+            result,
+            selected_instances,
+            download_url=url_for("download_report", report_id=report_id),
+            nav_urls={
+                "dashboard": url_for("index"),
+                "matrix": url_for("matrix_compare"),
+            },
+        )
+        (REPORTS_DIR / f"{report_id}.html").write_text(html_content, encoding="utf-8")
+        return redirect(url_for("view_report", report_id=report_id))
+    return render_template("matrix.html", instances=instances)
 
 
 # ── AI Summary (Phase 5) ────────────────────────────────────────────────

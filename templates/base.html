@@ -21,6 +21,9 @@
         <a href="{{ url_for('compare') }}" class="nav-link {% if request.endpoint == 'compare' %}active{% endif %}">
           <span class="nav-icon">⚖</span> Compare
         </a>
+        <a href="{{ url_for('matrix_compare') }}" class="nav-link {% if request.endpoint == 'matrix_compare' %}active{% endif %}">
+          <span class="nav-icon">⊞</span> Matrix
+        </a>
       </nav>
     </aside>
 

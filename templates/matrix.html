@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Matrix Compare - SF Config Compare{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Matrix Comparison</h1>
+  <p class="muted">Compare N instances side-by-side — entities, fields, and picklist values in one view.</p>
+</div>
+
+<div class="form-card">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-section-title">Select Instances (min 2)</div>
+    <p class="muted">Hold Ctrl / Cmd to select multiple instances.</p>
+    <div class="form-group">
+      <select id="instance_ids" name="instance_ids[]" multiple required class="select-field" style="min-height:140px;">
+        {% for inst in instances %}
+        <option value="{{ inst.id }}">{{ inst.alias }} — {{ inst.base_url }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-section-title" style="margin-top:20px;">Entity Filter (Optional)</div>
+    <p class="muted">Leave empty to compare all entities.</p>
+    <div class="form-group">
+      <select id="entity_filter" name="entity_filter" multiple class="select-field" style="min-height:100px;">
+        <option value="">-- All entities --</option>
+      </select>
+    </div>
+
+    <div class="form-section-title" style="margin-top:20px;">Picklist Comparison Scope</div>
+    <div class="checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" name="compare_fields" value="label_en" checked>
+        English label
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="compare_fields" value="status" checked>
+        Status
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="compare_fields" value="locale:en_US" checked>
+        Locale: en_US
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Run Matrix Comparison</button>
+    </div>
+  </form>
+</div>
+
+{% if instances | length < 2 %}
+<div class="info-box">
+  You need at least two instances with pulled data to run a matrix comparison.
+</div>
+{% endif %}
+{% endblock %}
