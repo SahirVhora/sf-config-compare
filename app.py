@@ -8,22 +8,50 @@ import time
 import uuid
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from flask import (Flask, Response, abort, flash, jsonify, redirect, render_template, request, session, stream_with_context, url_for)
 
-from config import LOGS_DIR, REPORTS_DIR, SECRET_KEY, LOG_LEVEL, REPORT_ACCESS_TOKEN
-from core.auth import (delete_credentials, get_client_secret, get_password,
-                       store_client_secret, store_password)
-from core.comparator import compare_instances
-from core.db import (get_fields_for_entities, get_conn, get_pull_history,
-                     get_scheduled_checks, create_scheduled_check,
-                     get_scheduled_check, update_scheduled_check,
-                     delete_scheduled_check)
-from core.db import (delete_instance, get_all_instances, get_instance,
-                     get_entities_for_instance, get_picklists_for_instance,
-                     init_db, update_pull_timestamp, upsert_instance)
+from config import LOG_LEVEL, LOGS_DIR, REPORT_ACCESS_TOKEN, REPORTS_DIR, SECRET_KEY
 from core.api import api as _api_blueprint
+from core.auth import (
+    delete_credentials,
+    get_client_secret,
+    get_password,
+    store_client_secret,
+    store_password,
+)
+from core.comparator import compare_instances
+from core.db import (
+    create_scheduled_check,
+    delete_instance,
+    delete_scheduled_check,
+    get_all_instances,
+    get_conn,
+    get_entities_for_instance,
+    get_fields_for_entities,
+    get_instance,
+    get_picklists_for_instance,
+    get_pull_history,
+    get_scheduled_check,
+    get_scheduled_checks,
+    init_db,
+    update_pull_timestamp,
+    update_scheduled_check,
+    upsert_instance,
+)
 from core.reporter import generate_excel_report, generate_html_report
 from core.scheduler import schedule_check
+from flask import (
+    Flask,
+    Response,
+    abort,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    stream_with_context,
+    url_for,
+)
 
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -43,14 +71,17 @@ app = Flask(__name__)
 # ── Caching layer ─────────────────────────────────────────────────────────
 try:
     from flask_caching import Cache
+
     cache = Cache(app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})
 except ImportError:
+    logger.debug("flask_caching not installed; response caching disabled")
     cache = None
 
 # ── Rate limiting (enterprise hardening) ──────────────────────────────────
 try:
     from flask_limiter import Limiter
     from flask_limiter.util import get_remote_address
+
     limiter = Limiter(
         get_remote_address,
         app=app,
@@ -59,6 +90,7 @@ try:
         strategy="fixed-window",
     )
 except ImportError:
+    logger.debug("flask_limiter not installed; rate limiting disabled")
     limiter = None
 app.secret_key = SECRET_KEY
 app.config.update(
@@ -69,23 +101,25 @@ app.config.update(
 
 
 def _get_csrf_token():
-    if 'csrf_token' not in session:
+    if "csrf_token" not in session:
         import secrets
-        session['csrf_token'] = secrets.token_urlsafe(32)
-    return session['csrf_token']
+
+        session["csrf_token"] = secrets.token_urlsafe(32)
+    return session["csrf_token"]
 
 
-app.jinja_env.globals['csrf_token'] = _get_csrf_token
+app.jinja_env.globals["csrf_token"] = _get_csrf_token
 
 
 @app.before_request
 def check_csrf():
-    if app.config.get('TESTING') is True:
+    if app.config.get("TESTING") is True:
         return
-    if request.method == 'POST':
-        token = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
-        if not token or token != session.get('csrf_token'):
-            abort(403, 'CSRF token missing or invalid')
+    if request.method == "POST":
+        token = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token")
+        if not token or token != session.get("csrf_token"):
+            abort(403, "CSRF token missing or invalid")
+
 
 init_db()
 
@@ -125,8 +159,11 @@ def _run_pull_inner(
 
     def emit(step, status, message, pct=0):
         event = {
-            "step": step, "status": status, "message": message,
-            "percent_complete": pct, "timestamp": datetime.now().isoformat(),
+            "step": step,
+            "status": status,
+            "message": message,
+            "percent_complete": pct,
+            "timestamp": datetime.now().isoformat(),
         }
         _jobs[job_id]["last_event"] = event
         q.put(event)
@@ -134,6 +171,7 @@ def _run_pull_inner(
     try:
         if pull_type == "picklist":
             from core.picklist_pull import pull_picklist
+
             result = pull_picklist(instance, emit_fn=emit)
             if result["success"]:
                 total = result.get("total_values", 0)
@@ -147,11 +185,16 @@ def _run_pull_inner(
 
         elif pull_type == "odata_metadata":
             from core.odata_metadata_pull import pull_odata_metadata
+
             result = pull_odata_metadata(instance, emit_fn=emit)
             if result["success"]:
                 update_pull_timestamp(instance["id"], "metadata")
-                emit("done", "success",
-                     f"Stored {result['entities_count']} entities, {result['fields_count']} fields", 100)
+                emit(
+                    "done",
+                    "success",
+                    f"Stored {result['entities_count']} entities, {result['fields_count']} fields",
+                    100,
+                )
             else:
                 _jobs[job_id]["status"] = "error"
                 _jobs[job_id]["error"] = result.get("error")
@@ -245,7 +288,8 @@ def trigger_pull(instance_id):
         # Prune stale completed jobs older than 10 minutes
         now = time.time()
         stale = [
-            jid for jid, j in _jobs.items()
+            jid
+            for jid, j in _jobs.items()
             if j.get("status") in {"done", "error"} and now - j.get("started_at", now) > 600
         ]
         for jid in stale:
@@ -291,14 +335,17 @@ def pull_stream(job_id):
         while True:
             event = q.get()
             if event is None:
-                yield "data: {\"done\": true}\n\n"
+                yield 'data: {"done": true}\n\n'
                 break
             yield f"data: {json.dumps(event)}\n\n"
         with _jobs_lock:
             _job_queues.pop(job_id, None)
 
-    return Response(generate(), mimetype="text/event-stream",
-                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.route("/instances/<int:instance_id>/browse")
@@ -341,10 +388,10 @@ def compare():
         inst_b = get_instance(id_b)
         picklist_fields = set(request.form.getlist("compare_fields")) or None
         entity_filter = set(request.form.getlist("entity_filter")) or None
-        result = compare_instances(id_a, id_b, picklist_fields=picklist_fields, entity_filter=entity_filter)
-        excel_path = generate_excel_report(
-            inst_a["alias"], inst_b["alias"], result, inst_a, inst_b
+        result = compare_instances(
+            id_a, id_b, picklist_fields=picklist_fields, entity_filter=entity_filter
         )
+        excel_path = generate_excel_report(inst_a["alias"], inst_b["alias"], result, inst_a, inst_b)
         report_id = excel_path.stem
         html_content = generate_html_report(
             inst_a["alias"],
@@ -363,18 +410,18 @@ def compare():
 
 @app.route("/reports/<report_id>/view")
 def view_report(report_id):
-    if not re.match(r'^[A-Za-z0-9_\-]{3,160}$', report_id):
-        abort(400, 'Invalid report ID')
+    if not re.match(r"^[A-Za-z0-9_\-]{3,160}$", report_id):
+        abort(400, "Invalid report ID")
     if REPORT_ACCESS_TOKEN and request.args.get("token") != REPORT_ACCESS_TOKEN:
         abort(403, "Missing or invalid report access token")
-    report_path = REPORTS_DIR / f'{report_id}.html'
+    report_path = REPORTS_DIR / f"{report_id}.html"
     try:
         resolved = report_path.resolve()
         reports_resolved = REPORTS_DIR.resolve()
         if not str(resolved).startswith(str(reports_resolved)):
-            abort(400, 'Invalid report path')
+            abort(400, "Invalid report path")
     except Exception:
-        abort(400, 'Invalid report path')
+        abort(400, "Invalid report path")
     html_file = report_path
     if not html_file.exists():
         abort(404)
@@ -386,6 +433,7 @@ def download_report(report_id):
     if REPORT_ACCESS_TOKEN and request.args.get("token") != REPORT_ACCESS_TOKEN:
         abort(403, "Missing or invalid report access token")
     from flask import send_file
+
     xlsx = REPORTS_DIR / f"{report_id}.xlsx"
     if not xlsx.exists():
         abort(404)
@@ -396,17 +444,20 @@ def download_report(report_id):
 def test_connection(instance_id):
     """Lightweight connectivity test - fetches $metadata with the stored credentials."""
     import requests as _req
+
     instance = get_instance(instance_id)
     if not instance:
         return {"ok": False, "error": "Instance not found"}, 404
 
     try:
-        metadata_url = f'{instance["base_url"]}/odata/v2/$metadata'
+        metadata_url = f"{instance['base_url']}/odata/v2/$metadata"
         headers = {"Accept": "application/xml"}
         timeout = 15
 
         if instance.get("auth_type") == "oauth2":
-            from core.auth import fetch_oauth_token, get_client_secret as _gcs
+            from core.auth import fetch_oauth_token
+            from core.auth import get_client_secret as _gcs
+
             secret = _gcs(instance["alias"])
             if not secret:
                 return {"ok": False, "error": "No client secret stored"}, 400
@@ -416,15 +467,25 @@ def test_connection(instance_id):
             headers["Authorization"] = f"Bearer {token}"
             username = pwd = None
         else:
-            from core.auth import format_basic_username, get_password as _gp
+            from core.auth import format_basic_username
+            from core.auth import get_password as _gp
+
             pwd = _gp(instance["alias"])
             if not pwd:
                 return {"ok": False, "error": "No password stored"}, 400
             username = format_basic_username(instance.get("username"), instance.get("company_id"))
 
-        resp = _req.get(metadata_url, auth=(username, pwd) if username and pwd else None, headers=headers, timeout=timeout)
+        resp = _req.get(
+            metadata_url,
+            auth=(username, pwd) if username and pwd else None,
+            headers=headers,
+            timeout=timeout,
+        )
         if resp.status_code == 200:
-            return {"ok": True, "message": f"Connected. HTTP {resp.status_code}, {len(resp.content)} bytes"}, 200
+            return {
+                "ok": True,
+                "message": f"Connected. HTTP {resp.status_code}, {len(resp.content)} bytes",
+            }, 200
         return {"ok": False, "error": f"HTTP {resp.status_code}: {resp.reason}"}, 400
 
     except Exception as exc:
@@ -487,9 +548,10 @@ def _save_credentials(data: dict, form, existing_alias: str | None = None):
 
 
 if __name__ == "__main__":
-    debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
-    port = int(os.getenv('PORT', '5050'))
+    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    port = int(os.getenv("PORT", "5050"))
     app.run(port=port, debug=debug_mode)
+
 
 # ── Pull History (Phase 2) ───────────────────────────────────────────────
 @app.route("/instances/<int:instance_id>/history")
@@ -526,6 +588,7 @@ def scheduled_check_add():
         check_id = create_scheduled_check(data)
         if data["enabled"]:
             from core.scheduler import schedule_check
+
             schedule_check(check_id, data["cron_expression"])
         flash("Scheduled check created.", "success")
     except Exception as exc:
@@ -542,6 +605,7 @@ def scheduled_check_toggle(check_id):
     new_state = not bool(check.get("enabled", 1))
     update_scheduled_check(check_id, {**check, "enabled": new_state, "name": check["name"]})
     from core.scheduler import schedule_check, unschedule_check
+
     if new_state:
         schedule_check(check_id, check.get("cron_expression", "0 0 * * *"))
     else:
@@ -553,6 +617,7 @@ def scheduled_check_toggle(check_id):
 @app.route("/scheduled-checks/<int:check_id>/delete", methods=["POST"])
 def scheduled_check_delete(check_id):
     from core.scheduler import unschedule_check
+
     unschedule_check(check_id)
     delete_scheduled_check(check_id)
     flash("Scheduled check deleted.", "info")
@@ -571,6 +636,7 @@ def ai_summary():
             return jsonify({"error": "Instance not found"}), 404
         result = compare_instances(id_a, id_b)
         from core.ai_analyzer import summarize_comparison
+
         summary = summarize_comparison(inst_a["alias"], inst_b["alias"], result)
         return jsonify(summary)
     except Exception as exc:
