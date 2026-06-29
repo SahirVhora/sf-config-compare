@@ -1,13 +1,14 @@
 import json
 import logging
 import time
-import requests
 import xml.etree.ElementTree as ET
-from defusedxml.ElementTree import fromstring as _safe_fromstring
 from datetime import datetime
 
-from core.db import record_pull_history
+import requests
+from defusedxml.ElementTree import fromstring as _safe_fromstring
+
 from core.auth import build_instance_auth
+from core.db import record_pull_history
 
 logger = logging.getLogger(__name__)
 
@@ -44,11 +45,17 @@ def pull_odata_metadata(instance: dict, emit_fn=None) -> dict:
 
         emit("fetch", "in-progress", "Fetching /odata/v2/$metadata from API", 20)
         url = f"{base_url}/odata/v2/$metadata"
-        resp = requests.get(url, headers=auth_headers, auth=auth_obj, verify=True, timeout=120)
+        resp = requests.get(
+            url, headers=auth_headers, auth=auth_obj, verify=True, timeout=120
+        )
         resp.raise_for_status()
 
         emit("parse", "in-progress", "Parsing metadata XML", 55)
-        logger.debug("Response status: %s, Content-Type: %s", resp.status_code, resp.headers.get("Content-Type"))
+        logger.debug(
+            "Response status: %s, Content-Type: %s",
+            resp.status_code,
+            resp.headers.get("Content-Type"),
+        )
         logger.debug("Response snippet: %s", resp.text[:500])
         try:
             root = _safe_fromstring(resp.content)
@@ -62,22 +69,36 @@ def pull_odata_metadata(instance: dict, emit_fn=None) -> dict:
         entity_labels = _collect_entity_labels(root)
         entities, fields = _parse_entity_types(root, entity_labels)
 
-        emit("store", "in-progress", f"Storing {len(entities)} entities, {sum(len(f) for f in fields.values())} fields", 75)
+        emit(
+            "store",
+            "in-progress",
+            f"Storing {len(entities)} entities, {sum(len(f) for f in fields.values())} fields",
+            75,
+        )
         pull_ts = datetime.now().isoformat()
         stats = _write_to_db(instance["id"], pull_ts, entities, fields)
-        record_pull_history(instance["id"], "metadata", "success",
-                            entities_count=stats["entities_count"],
-                            fields_count=stats["fields_count"],
-                            history_id=history_id)
+        record_pull_history(
+            instance["id"],
+            "metadata",
+            "success",
+            entities_count=stats["entities_count"],
+            fields_count=stats["fields_count"],
+            history_id=history_id,
+        )
 
         duration = round(time.time() - start, 2)
-        emit("done", "success",
-             f"Stored {stats['entities_count']} entities, {stats['fields_count']} fields", 100)
+        emit(
+            "done",
+            "success",
+            f"Stored {stats['entities_count']} entities, {stats['fields_count']} fields",
+            100,
+        )
         return {"success": True, "duration_seconds": duration, **stats}
 
     except Exception as exc:
-        record_pull_history(instance['id'], 'metadata', 'error',
-                            error=str(exc), history_id=history_id)
+        record_pull_history(
+            instance["id"], "metadata", "error", error=str(exc), history_id=history_id
+        )
         duration = round(time.time() - start, 2)
         emit("error", "error", str(exc), 0)
         logger.exception("OData metadata pull failed for %s", alias)
@@ -125,15 +146,16 @@ def _parse_entity_types(root: ET.Element, entity_labels: dict) -> tuple[list, di
                 continue
 
             key_names = {
-                pr.get("Name")
-                for pr in et.findall(f".//{_EDM}Key/{_EDM}PropertyRef")
+                pr.get("Name") for pr in et.findall(f".//{_EDM}Key/{_EDM}PropertyRef")
             }
 
-            entities.append({
-                "entity_name": entity_name,
-                "entity_label": entity_labels.get(entity_name, ""),
-                "element_name": entity_name,
-            })
+            entities.append(
+                {
+                    "entity_name": entity_name,
+                    "entity_label": entity_labels.get(entity_name, ""),
+                    "element_name": entity_name,
+                }
+            )
 
             entity_fields = []
 
@@ -144,15 +166,29 @@ def _parse_entity_types(root: ET.Element, entity_labels: dict) -> tuple[list, di
                 # Nullable=false means required; sap:required may also be set
                 nullable = prop.get("Nullable", "true").lower()
                 sap_required = prop.get(f"{_SAP}required") or ""
-                required = "true" if nullable == "false" or sap_required.lower() == "true" else "false"
+                required = (
+                    "true"
+                    if nullable == "false" or sap_required.lower() == "true"
+                    else "false"
+                )
                 visibility = prop.get(f"{_SAP}visible") or prop.get("visible") or ""
                 max_length = prop.get("MaxLength") or ""
                 picklist_id = prop.get(f"{_SAP}picklist") or prop.get("picklist") or ""
-                is_custom = 1 if field_id.startswith("cust_") or entity_name.startswith("cust_") else 0
+                is_custom = (
+                    1
+                    if field_id.startswith("cust_") or entity_name.startswith("cust_")
+                    else 0
+                )
 
                 known = {
-                    "Name", "Type", "Nullable", "MaxLength",
-                    f"{_SAP}label", f"{_SAP}visible", f"{_SAP}required", f"{_SAP}picklist",
+                    "Name",
+                    "Type",
+                    "Nullable",
+                    "MaxLength",
+                    f"{_SAP}label",
+                    f"{_SAP}visible",
+                    f"{_SAP}required",
+                    f"{_SAP}picklist",
                 }
                 raw_attrs = {
                     _clean_attr(k): v
@@ -162,40 +198,46 @@ def _parse_entity_types(root: ET.Element, entity_labels: dict) -> tuple[list, di
                 if field_id in key_names:
                     raw_attrs["key"] = "true"
 
-                entity_fields.append({
-                    "field_id": field_id,
-                    "field_label": field_label,
-                    "field_type": field_type,
-                    "required": required,
-                    "visibility": visibility,
-                    "max_length": max_length,
-                    "picklist_id": picklist_id,
-                    "is_custom": is_custom,
-                    "raw_attributes": json.dumps(raw_attrs) if raw_attrs else None,
-                    "nav": False,
-                })
+                entity_fields.append(
+                    {
+                        "field_id": field_id,
+                        "field_label": field_label,
+                        "field_type": field_type,
+                        "required": required,
+                        "visibility": visibility,
+                        "max_length": max_length,
+                        "picklist_id": picklist_id,
+                        "is_custom": is_custom,
+                        "raw_attributes": json.dumps(raw_attrs) if raw_attrs else None,
+                        "nav": False,
+                    }
+                )
 
             for nav in et.findall(f"{_EDM}NavigationProperty"):
                 field_id = nav.get("Name") or ""
-                entity_fields.append({
-                    "field_id": field_id,
-                    "field_label": nav.get(f"{_SAP}label") or "",
-                    "field_type": "NavigationProperty",
-                    "required": "false",
-                    "visibility": "",
-                    "max_length": "",
-                    "picklist_id": "",
-                    "is_custom": 0,
-                    "raw_attributes": None,
-                    "nav": True,
-                })
+                entity_fields.append(
+                    {
+                        "field_id": field_id,
+                        "field_label": nav.get(f"{_SAP}label") or "",
+                        "field_type": "NavigationProperty",
+                        "required": "false",
+                        "visibility": "",
+                        "max_length": "",
+                        "picklist_id": "",
+                        "is_custom": 0,
+                        "raw_attributes": None,
+                        "nav": True,
+                    }
+                )
 
             fields[entity_name] = entity_fields
 
     return entities, fields
 
 
-def _write_to_db(instance_id: int, pull_timestamp: str, entities: list, fields: dict) -> dict:
+def _write_to_db(
+    instance_id: int, pull_timestamp: str, entities: list, fields: dict
+) -> dict:
     """Persist parsed metadata to SQLite inside a single transaction for speed and consistency.
 
     Deletes stale data first, then inserts new entities and fields atomically.
@@ -213,7 +255,9 @@ def _write_to_db(instance_id: int, pull_timestamp: str, entities: list, fields: 
             "(SELECT id FROM metadata_entities WHERE instance_id = ?)",
             (instance_id,),
         )
-        conn.execute("DELETE FROM metadata_entities WHERE instance_id = ?", (instance_id,))
+        conn.execute(
+            "DELETE FROM metadata_entities WHERE instance_id = ?", (instance_id,)
+        )
 
         for entity in entities:
             cur = conn.execute(
@@ -239,9 +283,15 @@ def _write_to_db(instance_id: int, pull_timestamp: str, entities: list, fields: 
                     " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         entity_id,
-                        f["field_id"], f["field_label"], f["field_type"],
-                        f["required"], f["visibility"], f["max_length"],
-                        f["picklist_id"], f["is_custom"], f["raw_attributes"],
+                        f["field_id"],
+                        f["field_label"],
+                        f["field_type"],
+                        f["required"],
+                        f["visibility"],
+                        f["max_length"],
+                        f["picklist_id"],
+                        f["is_custom"],
+                        f["raw_attributes"],
                     ),
                 )
                 fields_count += 1

@@ -1,0 +1,6 @@
+[tool.ruff.lint]
+ignore = [
+  "N817",   # ElementTree imported as ET -- standard alias
+  "SIM108", # Use ternary operator -- readability preference
+  "SIM117", # Use single `with` -- readability preference
+]

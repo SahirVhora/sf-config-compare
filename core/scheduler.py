@@ -45,6 +45,7 @@ def schedule_check(check_id: int, cron_expression: str) -> bool:
         scheduler.remove_job(job_id)
     try:
         from apscheduler.triggers.cron import CronTrigger
+
         scheduler.add_job(
             _run_check_job,
             trigger=CronTrigger.from_crontab(cron_expression),
@@ -82,11 +83,11 @@ def _run_check_job(check_id: int) -> None:
 
 def run_drift_check(check_id: int) -> dict:
     """Manually or automatically run a drift check and optionally notify."""
-    from core.db import (get_scheduled_check, update_check_last_run,
-                         record_drift_result)
-    from core.comparator import compare_instances
-    from core.reporter import generate_excel_report, generate_html_report
     from config import REPORTS_DIR
+
+    from core.comparator import compare_instances
+    from core.db import get_scheduled_check, record_drift_result, update_check_last_run
+    from core.reporter import generate_excel_report, generate_html_report
 
     check = get_scheduled_check(check_id)
     if not check:
@@ -113,27 +114,37 @@ def run_drift_check(check_id: int) -> dict:
 
     # Generate reports
     from core.db import get_instance
+
     inst_a = get_instance(id_a)
     inst_b = get_instance(id_b)
     report_id = None
     if inst_a and inst_b:
         try:
-            excel_path = generate_excel_report(inst_a["alias"], inst_b["alias"], result, inst_a, inst_b)
+            excel_path = generate_excel_report(
+                inst_a["alias"], inst_b["alias"], result, inst_a, inst_b
+            )
             report_id = excel_path.stem
             html_content = generate_html_report(
-                inst_a["alias"], inst_b["alias"], result,
+                inst_a["alias"],
+                inst_b["alias"],
+                result,
                 download_url=f"/api/v1/reports/{report_id}/download",
                 nav_urls={},
             )
-            (REPORTS_DIR / f"{report_id}.html").write_text(html_content, encoding="utf-8")
+            (REPORTS_DIR / f"{report_id}.html").write_text(
+                html_content, encoding="utf-8"
+            )
         except Exception:
-            logger.exception("Report generation failed for scheduled check %s", check_id)
+            logger.exception(
+                "Report generation failed for scheduled check %s", check_id
+            )
 
     record_drift_result(
         check_id=check_id,
         status=status,
         summary_json=json.dumps(summary),
-        entity_diff_count=summary.get("entities_only_in_a", 1) + summary.get("entities_only_in_b", 1),
+        entity_diff_count=summary.get("entities_only_in_a", 1)
+        + summary.get("entities_only_in_b", 1),
         field_diff_count=summary.get("fields_with_diff", 1),
         picklist_issue_count=summary.get("value_diffs", 1),
         report_id=report_id,
@@ -143,9 +154,11 @@ def run_drift_check(check_id: int) -> dict:
     # Notification logic
     notify_on = check.get("notify_on", "any_change")
     should_notify = False
-    if notify_on == "any_change":
-        should_notify = True
-    elif notify_on == "drift_only" and status == "drift_detected":
+    if (
+        notify_on == "any_change"
+        or notify_on == "drift_only"
+        and status == "drift_detected"
+    ):
         should_notify = True
 
     notification_sent = 0
@@ -165,6 +178,7 @@ def run_drift_check(check_id: int) -> dict:
 def _send_webhook(check: dict, result: dict, report_id: str | None) -> bool:
     """Send a webhook notification to the configured endpoint."""
     import requests as _req
+
     url = check.get("webhook_url")
     if not url:
         return False
@@ -186,16 +200,31 @@ def _send_webhook(check: dict, result: dict, report_id: str | None) -> bool:
     if webhook_type == "slack":
         payload = {
             "text": "SF Config Compare drift detected",
-            "attachments": [{
-                "color": "danger" if total_issues > 0 else "good",
-                "fields": [
-                    {"title": "Instance A", "value": inst_a_alias, "short": True},
-                    {"title": "Instance B", "value": inst_b_alias, "short": True},
-                    {"title": "Missing Entities", "value": summary.get("entities_only_in_a", 0) + summary.get("entities_only_in_b", 1), "short": True},
-                    {"title": "Field Diffs", "value": summary.get("fields_with_diff", 1), "short": True},
-                    {"title": "Picklist Issues", "value": summary.get("value_diffs", 1), "short": True},
-                ],
-            }],
+            "attachments": [
+                {
+                    "color": "danger" if total_issues > 0 else "good",
+                    "fields": [
+                        {"title": "Instance A", "value": inst_a_alias, "short": True},
+                        {"title": "Instance B", "value": inst_b_alias, "short": True},
+                        {
+                            "title": "Missing Entities",
+                            "value": summary.get("entities_only_in_a", 0)
+                            + summary.get("entities_only_in_b", 1),
+                            "short": True,
+                        },
+                        {
+                            "title": "Field Diffs",
+                            "value": summary.get("fields_with_diff", 1),
+                            "short": True,
+                        },
+                        {
+                            "title": "Picklist Issues",
+                            "value": summary.get("value_diffs", 1),
+                            "short": True,
+                        },
+                    ],
+                }
+            ],
         }
     elif webhook_type == "teams":
         payload = {
@@ -203,14 +232,16 @@ def _send_webhook(check: dict, result: dict, report_id: str | None) -> bool:
             "@context": "https://schema.org/extensions",
             "themeColor": "FF0000" if total_issues > 0 else "00FF00",
             "summary": f"SF Config Compare drift: {inst_a_alias} vs {inst_b_alias}",
-            "sections": [{
-                "activityTitle": "SF Config Compare Drift Alert",
-                "facts": [
-                    {"name": "Instance A", "value": inst_a_alias},
-                    {"name": "Instance B", "value": inst_b_alias},
-                    {"name": "Total Issues", "value": str(total_issues)},
-                ],
-            }],
+            "sections": [
+                {
+                    "activityTitle": "SF Config Compare Drift Alert",
+                    "facts": [
+                        {"name": "Instance A", "value": inst_a_alias},
+                        {"name": "Instance B", "value": inst_b_alias},
+                        {"name": "Total Issues", "value": str(total_issues)},
+                    ],
+                }
+            ],
         }
     else:
         payload = {

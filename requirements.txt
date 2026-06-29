@@ -7,5 +7,11 @@ python-dotenv==1.2.2
 # Sibling project dependency
 sapsf-shared @ git+https://github.com/SahirVhora/sapsf-shared.git
 
+# Flask extensions (optional runtime -- app degrades gracefully)
+flask-caching==2.3.1
+flask-limiter==3.12.0
+
 # Development / testing
 pytest==9.1.1
+requests-mock==1.12.1
+pytest-responses==0.5.1

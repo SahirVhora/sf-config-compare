@@ -1,13 +1,13 @@
 import json
 import logging
 import time
-import requests
 from datetime import date, datetime
 
-from sapsf_shared.utils import parse_sf_date
+import requests
 
 from core.auth import build_instance_auth
 from core.db import get_conn, record_pull_history
+from sapsf_shared.utils import parse_sf_date
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ def pull_picklist(instance: dict, emit_fn=None) -> dict:
         if emit_fn:
             emit_fn(step, status, message, pct)
 
-    history_id = record_pull_history(instance['id'], 'picklist', 'pending')
+    history_id = record_pull_history(instance["id"], "picklist", "pending")
     emit("init", "in-progress", "Starting picklist pull via OData API", 5)
 
     try:
@@ -45,18 +45,27 @@ def pull_picklist(instance: dict, emit_fn=None) -> dict:
         emit("store", "in-progress", f"Storing {len(all_results)} picklist values", 80)
         stats = _write_to_db(all_results, instance["id"], datetime.now().isoformat())
 
-        record_pull_history(instance['id'], 'picklist', 'success',
-                            picklists_count=stats['total_picklists'],
-                            values_count=stats['total_values'],
-                            history_id=history_id)
+        record_pull_history(
+            instance["id"],
+            "picklist",
+            "success",
+            picklists_count=stats["total_picklists"],
+            values_count=stats["total_values"],
+            history_id=history_id,
+        )
         duration = round(time.time() - start, 2)
-        emit("done", "success",
-             f"Stored {stats['total_values']} values across {stats['total_picklists']} picklists", 100)
+        emit(
+            "done",
+            "success",
+            f"Stored {stats['total_values']} values across {stats['total_picklists']} picklists",
+            100,
+        )
         return {"success": True, "duration_seconds": duration, **stats}
 
     except Exception as exc:
-        record_pull_history(instance['id'], 'picklist', 'error',
-                            error=str(exc), history_id=history_id)
+        record_pull_history(
+            instance["id"], "picklist", "error", error=str(exc), history_id=history_id
+        )
         duration = round(time.time() - start, 2)
         emit("error", "error", str(exc), 0)
         logger.exception("Picklist pull failed for %s", alias)
@@ -108,7 +117,9 @@ def _write_to_db(results: list, instance_id: int, pull_timestamp: str) -> dict:
     inactive = 0
 
     with get_conn() as conn:
-        conn.execute("DELETE FROM picklist_values WHERE instance_id = ?", (instance_id,))
+        conn.execute(
+            "DELETE FROM picklist_values WHERE instance_id = ?", (instance_id,)
+        )
 
         for item in results:
             valid_from = parse_sf_date(item.get("validFrom"))
@@ -121,7 +132,9 @@ def _write_to_db(results: list, instance_id: int, pull_timestamp: str) -> dict:
             picklist_id = item.get("PickListV2_id") or item.get("picklistId") or ""
             option_id = item.get("optionId")
             external_code = item.get("externalCode")
-            parent_picklist_id = item.get("parentPicklistId") or item.get("PickListV2_parentPicklistId")
+            parent_picklist_id = item.get("parentPicklistId") or item.get(
+                "PickListV2_parentPicklistId"
+            )
             status = item.get("status") or "ACTIVE"
             if str(status).upper() not in ("ACTIVE", "A", "1", "TRUE"):
                 inactive += 1
@@ -129,7 +142,7 @@ def _write_to_db(results: list, instance_id: int, pull_timestamp: str) -> dict:
             label_en = item.get("label_en_US") or item.get("label_en")
 
             all_labels = {
-                k[len(_LABEL_PREFIX):]: v
+                k[len(_LABEL_PREFIX) :]: v
                 for k, v in item.items()
                 if k.startswith(_LABEL_PREFIX) and v
             }
@@ -140,8 +153,15 @@ def _write_to_db(results: list, instance_id: int, pull_timestamp: str) -> dict:
                 " status, label_en, all_labels, pull_timestamp)"
                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
-                    instance_id, picklist_id, option_id, external_code, parent_picklist_id,
-                    status, label_en, json.dumps(all_labels), pull_timestamp,
+                    instance_id,
+                    picklist_id,
+                    option_id,
+                    external_code,
+                    parent_picklist_id,
+                    status,
+                    label_en,
+                    json.dumps(all_labels),
+                    pull_timestamp,
                 ),
             )
             picklist_ids.add(picklist_id)

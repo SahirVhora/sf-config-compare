@@ -30,10 +30,9 @@ import core.db as _db_mod  # noqa: E402
 
 _db_mod.DB_PATH = TEST_DB
 
+import pytest  # noqa: E402
 from app import app as _flask_app  # noqa: E402
 from core.db import get_conn, init_db, upsert_instance  # noqa: E402
-import pytest  # noqa: E402
-
 
 # ── Fixtures ───────────────────────────────────────────────────────────────
 
@@ -59,24 +58,28 @@ def sample_instances():
     """Create two sample instances (DEV and PROD) with metadata entities,
     fields, and picklist values for comparison tests.
     """
-    id_a = upsert_instance({
-        "alias": "DEV",
-        "base_url": "https://dev.example.com",
-        "company_id": "DEV001",
-        "auth_type": "basic",
-        "username": "admin",
-        "client_id": None,
-        "token_url": None,
-    })
-    id_b = upsert_instance({
-        "alias": "PROD",
-        "base_url": "https://prod.example.com",
-        "company_id": "PROD001",
-        "auth_type": "basic",
-        "username": "admin",
-        "client_id": None,
-        "token_url": None,
-    })
+    id_a = upsert_instance(
+        {
+            "alias": "DEV",
+            "base_url": "https://dev.example.com",
+            "company_id": "DEV001",
+            "auth_type": "basic",
+            "username": "admin",
+            "client_id": None,
+            "token_url": None,
+        }
+    )
+    id_b = upsert_instance(
+        {
+            "alias": "PROD",
+            "base_url": "https://prod.example.com",
+            "company_id": "PROD001",
+            "auth_type": "basic",
+            "username": "admin",
+            "client_id": None,
+            "token_url": None,
+        }
+    )
     with get_conn() as conn:
         for inst_id, suffix in [(id_a, "_A"), (id_b, "_B")]:
             conn.execute(
@@ -103,22 +106,56 @@ def sample_instances():
                 "(entity_id, field_id, field_label, field_type, required, visibility,"
                 " max_length, picklist_id, is_custom, raw_attributes) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (eid, "field1", "Field 1", "Edm.String", "false", "true", "255", "", 0, None),
+                (
+                    eid,
+                    "field1",
+                    "Field 1",
+                    "Edm.String",
+                    "false",
+                    "true",
+                    "255",
+                    "",
+                    0,
+                    None,
+                ),
             )
             conn.execute(
                 "INSERT INTO metadata_fields "
                 "(entity_id, field_id, field_label, field_type, required, visibility,"
                 " max_length, picklist_id, is_custom, raw_attributes) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (eid, f"field_{val}", f"Field {val}", "Edm.String", "false", "true", "255", "", 0, None),
+                (
+                    eid,
+                    f"field_{val}",
+                    f"Field {val}",
+                    "Edm.String",
+                    "false",
+                    "true",
+                    "255",
+                    "",
+                    0,
+                    None,
+                ),
             )
-        for inst_id, code, label in [(id_a, "PL1", "Label A"), (id_b, "PL1", "Label B")]:
+        for inst_id, code, label in [
+            (id_a, "PL1", "Label A"),
+            (id_b, "PL1", "Label B"),
+        ]:
             conn.execute(
                 "INSERT INTO picklist_values "
                 "(instance_id, picklist_id, option_id, external_code, parent_picklist_id,"
                 " status, label_en, all_labels, pull_timestamp) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))",
-                (inst_id, "status", "OPT1", code, None, "ACTIVE", label, json.dumps({"en_US": label})),
+                (
+                    inst_id,
+                    "status",
+                    "OPT1",
+                    code,
+                    None,
+                    "ACTIVE",
+                    label,
+                    json.dumps({"en_US": label}),
+                ),
             )
     return id_a, id_b
 
@@ -134,5 +171,7 @@ def mock_auth_password():
 def mock_oauth_secret():
     """Patch get_client_secret and OAuth2Auth.fetch_token at their canonical locations."""
     with patch("core.auth.get_client_secret", return_value="dummy_secret_456"):
-        with patch("sapsf_shared.auth.OAuth2Auth.fetch_token", return_value="mock_token_abc"):
+        with patch(
+            "sapsf_shared.auth.OAuth2Auth.fetch_token", return_value="mock_token_abc"
+        ):
             yield
