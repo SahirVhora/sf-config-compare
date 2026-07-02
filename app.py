@@ -77,7 +77,9 @@ app = Flask(__name__)
 try:
     from flask_caching import Cache
 
-    cache = Cache(app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})
+    cache = Cache(
+        app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300}
+    )
 except ImportError:
     logger.debug("flask_caching not installed; response caching disabled")
     cache = None
@@ -181,7 +183,9 @@ def _run_pull_inner(
             if result["success"]:
                 total = result.get("total_values", 0)
                 update_pull_timestamp(instance["id"], "picklist")
-                emit("parse_picklist", "success", f"Stored {total} picklist values", 100)
+                emit(
+                    "parse_picklist", "success", f"Stored {total} picklist values", 100
+                )
             else:
                 _jobs[job_id]["status"] = "error"
                 _jobs[job_id]["error"] = result.get("error")
@@ -258,7 +262,9 @@ def edit_instance(instance_id):
         try:
             data = _form_to_instance(request.form)
             data["id"] = instance_id
-            _validate_instance_form(data, request.form, existing_alias=instance["alias"])
+            _validate_instance_form(
+                data, request.form, existing_alias=instance["alias"]
+            )
             _save_credentials(data, request.form, existing_alias=instance["alias"])
             upsert_instance(data)
             flash("Instance updated.", "success")
@@ -295,7 +301,8 @@ def trigger_pull(instance_id):
         stale = [
             jid
             for jid, j in _jobs.items()
-            if j.get("status") in {"done", "error"} and now - j.get("started_at", now) > 600
+            if j.get("status") in {"done", "error"}
+            and now - j.get("started_at", now) > 600
         ]
         for jid in stale:
             _jobs.pop(jid, None)
@@ -323,7 +330,9 @@ def pull_status(job_id):
     if not job:
         abort(404)
     instance = get_instance(job["instance_id"])
-    return render_template("pull_status.html", job_id=job_id, job=job, instance=instance)
+    return render_template(
+        "pull_status.html", job_id=job_id, job=job, instance=instance
+    )
 
 
 @app.route("/pull/stream/<job_id>")
@@ -396,7 +405,9 @@ def compare():
         result = compare_instances(
             id_a, id_b, picklist_fields=picklist_fields, entity_filter=entity_filter
         )
-        excel_path = generate_excel_report(inst_a["alias"], inst_b["alias"], result, inst_a, inst_b)
+        excel_path = generate_excel_report(
+            inst_a["alias"], inst_b["alias"], result, inst_a, inst_b
+        )
         report_id = excel_path.stem
         html_content = generate_html_report(
             inst_a["alias"],
@@ -467,7 +478,10 @@ def test_connection(instance_id):
             if not secret:
                 return {"ok": False, "error": "No client secret stored"}, 400
             token = fetch_oauth_token(
-                instance["token_url"], instance["client_id"], secret, instance["company_id"]
+                instance["token_url"],
+                instance["client_id"],
+                secret,
+                instance["company_id"],
             )
             headers["Authorization"] = f"Bearer {token}"
             username = pwd = None
@@ -478,7 +492,9 @@ def test_connection(instance_id):
             pwd = _gp(instance["alias"])
             if not pwd:
                 return {"ok": False, "error": "No password stored"}, 400
-            username = format_basic_username(instance.get("username"), instance.get("company_id"))
+            username = format_basic_username(
+                instance.get("username"), instance.get("company_id")
+            )
 
         resp = _req.get(
             metadata_url,
@@ -494,7 +510,9 @@ def test_connection(instance_id):
         return {"ok": False, "error": f"HTTP {resp.status_code}: {resp.reason}"}, 400
 
     except Exception as exc:
-        logger.warning("Connection test failed for instance %s: %s", instance.get("alias"), exc)
+        logger.warning(
+            "Connection test failed for instance %s: %s", instance.get("alias"), exc
+        )
         return {"ok": False, "error": str(exc)}, 400
 
 
@@ -552,12 +570,6 @@ def _save_credentials(data: dict, form, existing_alias: str | None = None):
         delete_credentials(existing_alias)
 
 
-if __name__ == "__main__":
-    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
-    port = int(os.getenv("PORT", "5050"))
-    app.run(port=port, debug=debug_mode)
-
-
 # ── Pull History (Phase 2) ───────────────────────────────────────────────
 @app.route("/instances/<int:instance_id>/history")
 def instance_history(instance_id):
@@ -574,7 +586,9 @@ def scheduled_checks_list():
     checks = get_scheduled_checks()
     instances = get_all_instances()
     instance_map = {i["id"]: i for i in instances}
-    return render_template("scheduled_checks.html", checks=checks, instance_map=instance_map)
+    return render_template(
+        "scheduled_checks.html", checks=checks, instance_map=instance_map
+    )
 
 
 @app.route("/scheduled-checks/add", methods=["POST"])
@@ -608,7 +622,9 @@ def scheduled_check_toggle(check_id):
     if not check:
         abort(404)
     new_state = not bool(check.get("enabled", 1))
-    update_scheduled_check(check_id, {**check, "enabled": new_state, "name": check["name"]})
+    update_scheduled_check(
+        check_id, {**check, "enabled": new_state, "name": check["name"]}
+    )
     from core.scheduler import schedule_check, unschedule_check
 
     if new_state:
@@ -693,3 +709,9 @@ def ai_summary():
     except Exception as exc:
         logger.exception("AI summary failed")
         return jsonify({"error": str(exc)}), 500
+
+
+if __name__ == "__main__":
+    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    port = int(os.getenv("PORT", "5050"))
+    app.run(port=port, debug=debug_mode)
