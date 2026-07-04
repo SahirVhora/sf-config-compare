@@ -21,6 +21,7 @@ def _get_openai_client() -> Any | None:
         return None
     try:
         import openai
+
         return openai.OpenAI(api_key=api_key)
     except ImportError:
         logger.warning("openai package not installed; AI features disabled.")
@@ -94,9 +95,18 @@ def summarize_comparison(alias_a: str, alias_b: str, result: dict) -> dict:
         }
 
 
-def _build_prompt(alias_a: str, alias_b: str, summary: dict, entity_diffs: list, field_diffs: list, picklist: dict) -> str:
+def _build_prompt(
+    alias_a: str,
+    alias_b: str,
+    summary: dict,
+    entity_diffs: list,
+    field_diffs: list,
+    picklist: dict,
+) -> str:
     """Build a structured prompt for the AI summarizer."""
-    missing_entities = [d["entity_name"] for d in entity_diffs if "only" in d["diff_type"]]
+    missing_entities = [
+        d["entity_name"] for d in entity_diffs if "only" in d["diff_type"]
+    ]
     attr_mismatches = [d for d in field_diffs if d["diff_type"] == "attribute_mismatch"]
     missing_fields = [d for d in field_diffs if "only" in d["diff_type"]]
 
@@ -126,20 +136,34 @@ def _build_prompt(alias_a: str, alias_b: str, summary: dict, entity_diffs: list,
     if missing_entities:
         prompt_parts.append(f"Missing entities: {', '.join(missing_entities[:20])}")
     if attr_summary:
-        prompt_parts.append("Attribute changes: " + ", ".join(f"{k} ({v})" for k, v in sorted(attr_summary.items(), key=lambda x: -x[1])[:10]))
+        prompt_parts.append(
+            "Attribute changes: "
+            + ", ".join(
+                f"{k} ({v})"
+                for k, v in sorted(attr_summary.items(), key=lambda x: -x[1])[:10]
+            )
+        )
     if missing_fields:
         by_entity: dict[str, int] = {}
         for d in missing_fields:
             by_entity[d["entity_name"]] = by_entity.get(d["entity_name"], 0) + 1
-        prompt_parts.append("Missing fields by entity: " + ", ".join(f"{k} ({v})" for k, v in sorted(by_entity.items(), key=lambda x: -x[1])[:10]))
+        prompt_parts.append(
+            "Missing fields by entity: "
+            + ", ".join(
+                f"{k} ({v})"
+                for k, v in sorted(by_entity.items(), key=lambda x: -x[1])[:10]
+            )
+        )
 
-    prompt_parts.extend([
-        "",
-        "Return a JSON object with exactly these keys:",
-        '- "overview": string, one-paragraph executive summary',
-        '- "risk_score": integer 1-100 (higher = more risky to deploy to target)',
-        '- "top_concerns": array of strings, 3-5 most important findings',
-        '- "recommendations": array of strings, 3-5 actionable next steps',
-    ])
+    prompt_parts.extend(
+        [
+            "",
+            "Return a JSON object with exactly these keys:",
+            '- "overview": string, one-paragraph executive summary',
+            '- "risk_score": integer 1-100 (higher = more risky to deploy to target)',
+            '- "top_concerns": array of strings, 3-5 most important findings',
+            '- "recommendations": array of strings, 3-5 actionable next steps',
+        ]
+    )
 
     return "\n".join(prompt_parts)

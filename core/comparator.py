@@ -5,7 +5,14 @@ from core.db import get_conn
 
 logger = logging.getLogger(__name__)
 
-FIELD_ATTRS = ["field_type", "required", "visibility", "max_length", "picklist_id", "is_custom"]
+FIELD_ATTRS = [
+    "field_type",
+    "required",
+    "visibility",
+    "max_length",
+    "picklist_id",
+    "is_custom",
+]
 ACTIVE_STATUSES = {"ACTIVE", "A", "1", "TRUE"}
 
 
@@ -164,7 +171,9 @@ def _compare_picklists(
 
     compare_label_en = fields is None or "label_en" in fields
     compare_status = fields is None or "status" in fields
-    locale_filter = None if fields is None else {f[7:] for f in fields if f.startswith("locale:")}
+    locale_filter = (
+        None if fields is None else {f[7:] for f in fields if f.startswith("locale:")}
+    )
 
     with get_conn() as conn:
         rows_a = conn.execute(
@@ -267,12 +276,20 @@ def _compare_picklists(
 
             if compare_label_en and va["label_en"] != vb["label_en"]:
                 field_diffs.append(
-                    {"field": "label_en", "value_a": va["label_en"], "value_b": vb["label_en"]}
+                    {
+                        "field": "label_en",
+                        "value_a": va["label_en"],
+                        "value_b": vb["label_en"],
+                    }
                 )
 
             if compare_status and va["status"] != vb["status"]:
                 field_diffs.append(
-                    {"field": "status", "value_a": va["status"], "value_b": vb["status"]}
+                    {
+                        "field": "status",
+                        "value_a": va["status"],
+                        "value_b": vb["status"],
+                    }
                 )
 
             locales_to_check = (
@@ -303,8 +320,12 @@ def _compare_picklists(
         "picklists_only_in_a": len(pids_only_a),
         "picklists_only_in_b": len(pids_only_b),
         "picklists_shared": len(pids_shared),
-        "missing_values_in_a": sum(1 for v in missing_values if v["diff_type"] == "only_in_b"),
-        "missing_values_in_b": sum(1 for v in missing_values if v["diff_type"] == "only_in_a"),
+        "missing_values_in_a": sum(
+            1 for v in missing_values if v["diff_type"] == "only_in_b"
+        ),
+        "missing_values_in_b": sum(
+            1 for v in missing_values if v["diff_type"] == "only_in_a"
+        ),
         "value_diffs": len(value_diffs),
     }
     return {
@@ -326,7 +347,9 @@ def _load_entities(instance_id: int, entity_filter: set | None = None) -> dict:
     return {r["entity_name"]: dict(r) for r in rows}
 
 
-def _load_fields_by_entity(instance_id: int, entity_filter: set | None = None) -> dict[int, list]:
+def _load_fields_by_entity(
+    instance_id: int, entity_filter: set | None = None
+) -> dict[int, list]:
     by_entity: dict[int, list] = {}
     sql = """
         SELECT f.*
@@ -379,7 +402,9 @@ def compare_instances_matrix(
         inst = get_instance(iid)
         if inst is None:
             raise ValueError(f"Instance ID {iid} not found")
-        instances_meta.append({"id": iid, "alias": inst["alias"], "base_url": inst["base_url"]})
+        instances_meta.append(
+            {"id": iid, "alias": inst["alias"], "base_url": inst["base_url"]}
+        )
 
     # --- Entity matrix ---
     all_entities: dict[int, dict] = {
@@ -430,7 +455,8 @@ def compare_instances_matrix(
             for iid in instance_ids:
                 if iid in by_instance:
                     values[iid] = {
-                        attr: str(by_instance[iid].get(attr) or "") for attr in FIELD_ATTRS
+                        attr: str(by_instance[iid].get(attr) or "")
+                        for attr in FIELD_ATTRS
                     }
                 else:
                     values[iid] = None  # field absent in this instance
@@ -444,7 +470,9 @@ def compare_instances_matrix(
                     if len(attr_vals) > 1:
                         differing_attrs.append(attr)
 
-            is_uniform = len(differing_attrs) == 0 and all(v is not None for v in values.values())
+            is_uniform = len(differing_attrs) == 0 and all(
+                v is not None for v in values.values()
+            )
 
             entity_fields[fid] = {
                 "field_label": field_label,
@@ -462,10 +490,14 @@ def compare_instances_matrix(
             field_matrix[entity_name] = entity_fields
 
     # --- Picklist matrix ---
-    picklist_matrix, pl_uniform, pl_diffs = _compare_picklists_matrix(instance_ids, picklist_fields)
+    picklist_matrix, pl_uniform, pl_diffs = _compare_picklists_matrix(
+        instance_ids, picklist_fields
+    )
 
     # --- Summary ---
-    entities_in_all = sum(1 for v in entity_matrix.values() if len(v["missing_from"]) == 0)
+    entities_in_all = sum(
+        1 for v in entity_matrix.values() if len(v["missing_from"]) == 0
+    )
     entities_with_gaps = len(entity_matrix) - entities_in_all
 
     return {
@@ -526,7 +558,9 @@ def _compare_picklists_matrix(
             idx.setdefault(key, {})[iid] = {
                 "label_en": _clean_text(r["label_en"]),
                 "status": _norm_status(r["status"]),
-                "all_labels": {_clean_text(k): _clean_text(v) for k, v in all_labels.items() if k},
+                "all_labels": {
+                    _clean_text(k): _clean_text(v) for k, v in all_labels.items() if k
+                },
             }
 
     picklist_matrix: dict[str, dict] = {}

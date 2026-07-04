@@ -27,7 +27,9 @@ logger = logging.getLogger(__name__)
 api = Blueprint("api", __name__, url_prefix="/api/v1")
 
 
-def _json_err(message: str, detail: str | None = None, status: int = 400) -> tuple[dict, int]:
+def _json_err(
+    message: str, detail: str | None = None, status: int = 400
+) -> tuple[dict, int]:
     return {"error": message, "detail": detail, "status": status}, status
 
 
@@ -93,7 +95,9 @@ def api_test_connection(instance_id: int):
             pwd = _gp(inst["alias"])
             if not pwd:
                 return _json_err("No password stored", status=400)
-            username = format_basic_username(inst.get("username"), inst.get("company_id"))
+            username = format_basic_username(
+                inst.get("username"), inst.get("company_id")
+            )
             auth = (username, pwd)
 
         resp = _req.get(metadata_url, auth=auth, headers=headers, timeout=timeout)
@@ -136,9 +140,13 @@ def api_compare():
     id_a = body.get("instance_a_id")
     id_b = body.get("instance_b_id")
     if not isinstance(id_a, int) or not isinstance(id_b, int):
-        return _json_err("instance_a_id and instance_b_id are required integers", status=422)
+        return _json_err(
+            "instance_a_id and instance_b_id are required integers", status=422
+        )
     if id_a == id_b:
-        return _json_err("instance_a_id and instance_b_id must be different", status=422)
+        return _json_err(
+            "instance_a_id and instance_b_id must be different", status=422
+        )
 
     inst_a = get_instance(id_a)
     inst_b = get_instance(id_b)
@@ -177,7 +185,9 @@ def api_compare_report():
     id_a = body.get("instance_a_id")
     id_b = body.get("instance_b_id")
     if not isinstance(id_a, int) or not isinstance(id_b, int):
-        return _json_err("instance_a_id and instance_b_id are required integers", status=422)
+        return _json_err(
+            "instance_a_id and instance_b_id are required integers", status=422
+        )
 
     inst_a = get_instance(id_a)
     inst_b = get_instance(id_b)
@@ -190,7 +200,9 @@ def api_compare_report():
         id_a, id_b, picklist_fields=picklist_fields, entity_filter=entity_filter
     )
 
-    excel_path = generate_excel_report(inst_a["alias"], inst_b["alias"], result, inst_a, inst_b)
+    excel_path = generate_excel_report(
+        inst_a["alias"], inst_b["alias"], result, inst_a, inst_b
+    )
     report_id = excel_path.stem
     html_content = generate_html_report(
         inst_a["alias"],
@@ -271,7 +283,11 @@ def api_pull_history(instance_id: int):
 @api.route("/instances/<int:instance_id>/history/<int:history_id>", methods=["GET"])
 def api_pull_history_detail(instance_id: int, history_id: int):
     """Return detailed snapshot for a specific pull history record."""
-    from core.db import get_entity_snapshots, get_picklist_snapshots, get_pull_history_by_id
+    from core.db import (
+        get_entity_snapshots,
+        get_picklist_snapshots,
+        get_pull_history_by_id,
+    )
 
     hist = get_pull_history_by_id(history_id)
     if not hist or hist["instance_id"] != instance_id:
@@ -309,7 +325,11 @@ def api_scheduled_checks():
 
 @api.route("/scheduled-checks/<int:check_id>", methods=["GET", "PUT", "DELETE"])
 def api_scheduled_check_detail(check_id: int):
-    from core.db import delete_scheduled_check, get_scheduled_check, update_scheduled_check
+    from core.db import (
+        delete_scheduled_check,
+        get_scheduled_check,
+        update_scheduled_check,
+    )
 
     if request.method == "GET":
         check = get_scheduled_check(check_id)
@@ -362,7 +382,9 @@ def api_ai_summary():
     id_a = body.get("instance_a_id")
     id_b = body.get("instance_b_id")
     if not isinstance(id_a, int) or not isinstance(id_b, int):
-        return _json_err("instance_a_id and instance_b_id are required integers", status=422)
+        return _json_err(
+            "instance_a_id and instance_b_id are required integers", status=422
+        )
 
     inst_a = get_instance(id_a)
     inst_b = get_instance(id_b)
@@ -411,7 +433,9 @@ def api_matrix():
     body: dict = request.get_json(silent=True) or {}
     instance_ids = body.get("instance_ids", [])
     if not isinstance(instance_ids, list) or len(instance_ids) < 2:
-        return _json_err("instance_ids must be a list of at least 2 integers", status=422)
+        return _json_err(
+            "instance_ids must be a list of at least 2 integers", status=422
+        )
     try:
         instance_ids = [int(i) for i in instance_ids]
     except (TypeError, ValueError):

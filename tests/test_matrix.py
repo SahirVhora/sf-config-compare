@@ -74,18 +74,44 @@ def three_instances(tmp_path):
                 "(entity_id, field_id, field_label, field_type, required, visibility,"
                 " max_length, picklist_id, is_custom, raw_attributes)"
                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (eid, "field1", "Field 1", "Edm.String", "false", "true", "255", "", 0, None),
+                (
+                    eid,
+                    "field1",
+                    "Field 1",
+                    "Edm.String",
+                    "false",
+                    "true",
+                    "255",
+                    "",
+                    0,
+                    None,
+                ),
             )
 
         # field_C differs: STAGING has required=true, others false
-        for inst_id, req_val in [(dev_id, "false"), (staging_id, "true"), (prod_id, "false")]:
+        for inst_id, req_val in [
+            (dev_id, "false"),
+            (staging_id, "true"),
+            (prod_id, "false"),
+        ]:
             eid = shared_eid_map[inst_id]
             conn.execute(
                 "INSERT INTO metadata_fields "
                 "(entity_id, field_id, field_label, field_type, required, visibility,"
                 " max_length, picklist_id, is_custom, raw_attributes)"
                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (eid, "field_C", "Field C", "Edm.String", req_val, "true", "255", "", 0, None),
+                (
+                    eid,
+                    "field_C",
+                    "Field C",
+                    "Edm.String",
+                    req_val,
+                    "true",
+                    "255",
+                    "",
+                    0,
+                    None,
+                ),
             )
 
         # Picklist PL1 with different label_en per instance
@@ -123,7 +149,13 @@ def test_matrix_result_structure(three_instances):
     dev_id, staging_id, prod_id = three_instances
     result = compare_instances_matrix([dev_id, staging_id, prod_id])
 
-    for key in ("instances", "summary", "entity_matrix", "field_matrix", "picklist_matrix"):
+    for key in (
+        "instances",
+        "summary",
+        "entity_matrix",
+        "field_matrix",
+        "picklist_matrix",
+    ):
         assert key in result, f"Missing top-level key: {key}"
 
     s = result["summary"]
@@ -349,7 +381,9 @@ def test_matrix_api_rejects_unknown_instance(client):
     assert resp.status_code == 404
 
 
-def test_matrix_api_include_reports_generates_file(client, three_instances, tmp_path, monkeypatch):
+def test_matrix_api_include_reports_generates_file(
+    client, three_instances, tmp_path, monkeypatch
+):
     import config
 
     monkeypatch.setattr(config, "REPORTS_DIR", tmp_path)

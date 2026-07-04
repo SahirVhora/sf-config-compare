@@ -33,6 +33,7 @@ _STORE = CredentialStore(
 
 # ── Credential storage (thin wrappers around CredentialStore) ─────────────
 
+
 def store_password(alias: str, password: str) -> None:
     """Persist a basic-auth password for the given instance alias."""
     _STORE.set(f"{alias}:password", password)
@@ -60,6 +61,7 @@ def delete_credentials(alias: str) -> None:
 
 # ── Username formatting (kept for backward compat + tests) ────────────────
 
+
 def format_basic_username(username: str | None, company_id: str | None) -> str:
     """Return the SuccessFactors OData basic-auth username (user@company)."""
     clean_username = (username or "").strip()
@@ -71,12 +73,13 @@ def format_basic_username(username: str | None, company_id: str | None) -> str:
 
 # ── OAuth token fetch (delegates to SDK with caching) ─────────────────────
 
+
 def fetch_oauth_token(
     token_url: str, client_id: str, client_secret: str, company_id: str
 ) -> str:
     """Fetch a client-credentials OAuth token (uses SDK token cache)."""
     cfg = AuthConfig(
-        base_url="",          # not needed for token fetch
+        base_url="",  # not needed for token fetch
         auth_type="oauth2",
         client_id=client_id,
         client_secret=client_secret,
@@ -87,6 +90,7 @@ def fetch_oauth_token(
 
 
 # ── Unified auth builder for instance dicts ──────────────────────────────
+
 
 def build_instance_auth(instance: dict, alias: str) -> tuple:
     """Return (headers_dict, requests_auth_or_None) for the instance.

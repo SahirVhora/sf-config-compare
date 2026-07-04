@@ -34,7 +34,9 @@ def _header_style(ws, row: int, cols: list[str]):
 def _auto_width(ws):
     for col in ws.columns:
         max_len = max((len(str(c.value or "")) for c in col), default=10)
-        ws.column_dimensions[get_column_letter(col[0].column)].width = min(max_len + 4, 60)
+        ws.column_dimensions[get_column_letter(col[0].column)].width = min(
+            max_len + 4, 60
+        )
 
 
 def _row_fill(ws, row: int, ncols: int, color: str):
@@ -54,13 +56,17 @@ def generate_excel_report(
 
     ws = wb.active
     ws.title = "Summary"
-    _write_summary_sheet(ws, alias_a, alias_b, result, instance_a, instance_b, timestamp)
+    _write_summary_sheet(
+        ws, alias_a, alias_b, result, instance_a, instance_b, timestamp
+    )
 
     ws_e = wb.create_sheet("Missing Entities")
     _write_entity_diff_sheet(ws_e, result["entity_diffs"], alias_a, alias_b)
 
     missing_fields = [d for d in result["field_diffs"] if "only" in d["diff_type"]]
-    attr_diffs = [d for d in result["field_diffs"] if d["diff_type"] == "attribute_mismatch"]
+    attr_diffs = [
+        d for d in result["field_diffs"] if d["diff_type"] == "attribute_mismatch"
+    ]
 
     ws_mf = wb.create_sheet("Missing Fields")
     _write_fields_only_sheet(ws_mf, missing_fields, alias_a, alias_b)
@@ -174,7 +180,9 @@ def _write_missing_picklists_sheet(ws, missing_picklists, alias_a, alias_b):
         ws.cell(row=i, column=1, value=d["picklist_id"])
         ws.cell(row=i, column=2, value=missing_from)
         ws.cell(row=i, column=3, value=d["value_count"])
-        _row_fill(ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL)
+        _row_fill(
+            ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL
+        )
     _auto_width(ws)
 
 
@@ -189,7 +197,9 @@ def _write_missing_values_sheet(ws, missing_values, alias_a, alias_b):
         ws.cell(row=i, column=3, value=d.get("label"))
         ws.cell(row=i, column=4, value=d.get("status"))
         ws.cell(row=i, column=5, value=missing_from)
-        _row_fill(ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL)
+        _row_fill(
+            ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL
+        )
     _auto_width(ws)
 
 
@@ -230,7 +240,9 @@ def _write_fields_only_sheet(ws, field_diffs, alias_a, alias_b):
         ws.cell(row=i, column=2, value=d["field_id"])
         ws.cell(row=i, column=3, value=d.get("field_label"))
         ws.cell(row=i, column=4, value=missing_from)
-        _row_fill(ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL)
+        _row_fill(
+            ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL
+        )
     _auto_width(ws)
 
 
@@ -274,9 +286,13 @@ def generate_html_report(
         )
     report_actions = ""
     if action_links:
-        report_actions = f'<div class="flex flex-wrap gap-2">{"".join(action_links)}</div>'
+        report_actions = (
+            f'<div class="flex flex-wrap gap-2">{"".join(action_links)}</div>'
+        )
 
-    total_picklist_issues = len(missing_picklists) + len(missing_values) + len(value_diffs)
+    total_picklist_issues = (
+        len(missing_picklists) + len(missing_values) + len(value_diffs)
+    )
     summary_cards = f"""
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
         <div class="bg-gray-50 rounded-lg p-4 text-center"><div class="text-2xl font-bold">{s["entities_in_both"]}</div><div class="text-xs text-gray-500 mt-1">Entities Compared</div></div>
@@ -657,7 +673,9 @@ def _write_matrix_entity_sheet(ws, aliases, result):
     _header_style(ws, 1, headers)
     green = PatternFill("solid", fgColor=GREEN_FILL)
     red = PatternFill("solid", fgColor=RED_FILL)
-    for row_i, (entity_name, info) in enumerate(sorted(result["entity_matrix"].items()), 2):
+    for row_i, (entity_name, info) in enumerate(
+        sorted(result["entity_matrix"].items()), 2
+    ):
         ws.cell(row_i, 1, entity_name)
         for col_j, iid in enumerate(instance_ids, 2):
             cell = ws.cell(row_i, col_j)
@@ -667,7 +685,11 @@ def _write_matrix_entity_sheet(ws, aliases, result):
             else:
                 cell.value = "Missing"
                 cell.fill = red
-        status = "OK" if not info["missing_from"] else f"Missing in {len(info['missing_from'])}"
+        status = (
+            "OK"
+            if not info["missing_from"]
+            else f"Missing in {len(info['missing_from'])}"
+        )
         ws.cell(row_i, len(aliases) + 2, status)
     _auto_width(ws)
 
