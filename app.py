@@ -3,6 +3,7 @@ import logging
 import os
 import queue
 import re
+import secrets
 import threading
 import time
 import uuid
@@ -109,8 +110,6 @@ app.config.update(
 
 def _get_csrf_token():
     if "csrf_token" not in session:
-        import secrets
-
         session["csrf_token"] = secrets.token_urlsafe(32)
     return session["csrf_token"]
 
@@ -124,7 +123,9 @@ def check_csrf():
         return
     if request.method == "POST":
         token = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token")
-        if not token or token != session.get("csrf_token"):
+        if not token or not secrets.compare_digest(
+            token, session.get("csrf_token", "")
+        ):
             abort(403, "CSRF token missing or invalid")
 
 
