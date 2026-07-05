@@ -174,8 +174,8 @@ Other endpoints: `GET /api/v1/instances`, `POST /api/v1/compare/report`,
   designed for `workers=1`.
 - Report HTML is capped at 500 picklist rows per section. Download the Excel
   export for the full dataset.
-- Pull history is not preserved - each pull overwrites the previous data.
-  Schema drift tracking across time is a future feature.
+- Pull history is preserved per instance (entity and picklist snapshots per
+  pull), viewable via the instance history page and `/api/v1/instances/<id>/history`.
 
 ## Local Data
 
