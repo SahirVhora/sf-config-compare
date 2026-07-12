@@ -7,6 +7,11 @@ import json
 import os
 from unittest.mock import patch
 
+import pytest
+from werkzeug.exceptions import Forbidden
+
+from app import app as flask_app
+from app import check_csrf
 from core import ai_analyzer
 from core.comparator import compare_instances
 from core.scheduler import run_drift_check
@@ -31,6 +36,25 @@ class TestPhase1SecurityAndAPI:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["instances"] == []
+
+    def test_api_blueprint_is_csrf_exempt(self):
+        prev_testing = flask_app.config.get("TESTING")
+        flask_app.config["TESTING"] = False
+        try:
+            with flask_app.test_request_context("/api/v1/compare", method="POST"):
+                assert check_csrf() is None
+        finally:
+            flask_app.config["TESTING"] = prev_testing
+
+    def test_non_api_post_requires_csrf(self):
+        prev_testing = flask_app.config.get("TESTING")
+        flask_app.config["TESTING"] = False
+        try:
+            with flask_app.test_request_context("/", method="POST"):
+                with pytest.raises(Forbidden):
+                    check_csrf()
+        finally:
+            flask_app.config["TESTING"] = prev_testing
 
     def test_api_compare_validation(self, client):
         resp = client.post("/api/v1/compare", json={})

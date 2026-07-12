@@ -121,12 +121,13 @@ app.jinja_env.globals["csrf_token"] = _get_csrf_token
 def check_csrf():
     if app.config.get("TESTING") is True:
         return
-    if request.method == "POST":
-        token = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token")
-        if not token or not secrets.compare_digest(
-            token, session.get("csrf_token", "")
-        ):
-            abort(403, "CSRF token missing or invalid")
+    if request.method != "POST":
+        return
+    if request.blueprint == "api":
+        return
+    token = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token")
+    if not token or not secrets.compare_digest(token, session.get("csrf_token", "")):
+        abort(403, "CSRF token missing or invalid")
 
 
 init_db()
