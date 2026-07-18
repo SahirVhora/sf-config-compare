@@ -4,11 +4,11 @@ import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
 
-import requests
 from defusedxml.ElementTree import fromstring as _safe_fromstring
 
 from core.auth import build_instance_auth
 from core.db import record_pull_history
+from sapsf_shared.retry import get_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def pull_odata_metadata(instance: dict, emit_fn=None) -> dict:
 
         emit("fetch", "in-progress", "Fetching /odata/v2/$metadata from API", 20)
         url = f"{base_url}/odata/v2/$metadata"
-        resp = requests.get(
+        resp = get_with_retry(
             url, headers=auth_headers, auth=auth_obj, verify=True, timeout=120
         )
         resp.raise_for_status()

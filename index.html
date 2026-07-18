@@ -454,11 +454,11 @@
       <p>The app stores runtime data locally and needs API access to your own SuccessFactors tenants. Do not deploy it publicly with real credentials or tenant data unless it is protected by your own authentication and hosting controls.</p>
       <pre><code>git clone https://github.com/SahirVhora/sf-config-compare.git
 cd sf-config-compare
-python3 -m venv .venv
+python3.11 -m venv .venv
 . .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 cp .env.example .env
-flask run --port 5050</code></pre>
+python -m flask run --port 5050</code></pre>
     </section>
     <footer>
       Built for SuccessFactors practitioners who need faster configuration visibility across tenants.

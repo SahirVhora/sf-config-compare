@@ -691,6 +691,131 @@ class TestIntegrationODataPull:
         assert result["success"] is True
         assert result["entities_count"] == 2
 
+    def test_pull_odata_metadata_retries_on_503_then_succeeds(
+        self, requests_mock, mock_auth_password, clean_db
+    ):
+        """A transient 503 (SF under load) should be retried, not fail the pull."""
+        from core.db import upsert_instance
+        from core.odata_metadata_pull import pull_odata_metadata
+
+        inst_id = upsert_instance(
+            {
+                "alias": "INT_RETRY",
+                "base_url": "https://int-retry.example.com",
+                "company_id": "INT004",
+                "auth_type": "basic",
+                "username": "admin",
+                "client_id": None,
+                "token_url": None,
+            }
+        )
+        instance = {
+            "id": inst_id,
+            "alias": "INT_RETRY",
+            "base_url": "https://int-retry.example.com",
+            "company_id": "INT004",
+            "auth_type": "basic",
+            "username": "admin",
+        }
+
+        requests_mock.get(
+            "https://int-retry.example.com/odata/v2/$metadata",
+            [
+                {"status_code": 503, "text": "Service Unavailable"},
+                {"status_code": 503, "text": "Service Unavailable"},
+                {"text": self._MOCK_METADATA_XML, "status_code": 200},
+            ],
+        )
+
+        with patch("sapsf_shared.retry.time.sleep"):  # skip the real backoff delay
+            result = pull_odata_metadata(instance)
+
+        assert result["success"] is True
+        assert result["entities_count"] == 2
+        assert requests_mock.call_count == 3
+
+    def test_pull_odata_metadata_exhausts_retries_on_persistent_503(
+        self, requests_mock, mock_auth_password, clean_db
+    ):
+        """A persistent 503 should still surface as a failed pull, not hang forever."""
+        from core.db import upsert_instance
+        from core.odata_metadata_pull import pull_odata_metadata
+
+        inst_id = upsert_instance(
+            {
+                "alias": "INT_RETRY2",
+                "base_url": "https://int-retry2.example.com",
+                "company_id": "INT005",
+                "auth_type": "basic",
+                "username": "admin",
+                "client_id": None,
+                "token_url": None,
+            }
+        )
+        instance = {
+            "id": inst_id,
+            "alias": "INT_RETRY2",
+            "base_url": "https://int-retry2.example.com",
+            "company_id": "INT005",
+            "auth_type": "basic",
+            "username": "admin",
+        }
+
+        requests_mock.get(
+            "https://int-retry2.example.com/odata/v2/$metadata",
+            status_code=503,
+            text="Service Unavailable",
+        )
+
+        with patch("sapsf_shared.retry.time.sleep"):
+            result = pull_odata_metadata(instance)
+
+        assert result["success"] is False
+        assert "503" in result["error"]
+        # MAX_RETRIES attempts, no more
+        from sapsf_shared.client import MAX_RETRIES
+
+        assert requests_mock.call_count == MAX_RETRIES
+
+    def test_pull_odata_metadata_malformed_xml(
+        self, requests_mock, mock_auth_password, clean_db
+    ):
+        """A non-XML/garbled response (auth redirect, HTML error page) should fail cleanly."""
+        from core.db import upsert_instance
+        from core.odata_metadata_pull import pull_odata_metadata
+
+        inst_id = upsert_instance(
+            {
+                "alias": "INT_BADXML",
+                "base_url": "https://int-badxml.example.com",
+                "company_id": "INT006",
+                "auth_type": "basic",
+                "username": "admin",
+                "client_id": None,
+                "token_url": None,
+            }
+        )
+        instance = {
+            "id": inst_id,
+            "alias": "INT_BADXML",
+            "base_url": "https://int-badxml.example.com",
+            "company_id": "INT006",
+            "auth_type": "basic",
+            "username": "admin",
+        }
+
+        requests_mock.get(
+            "https://int-badxml.example.com/odata/v2/$metadata",
+            # Not well-formed XML (unescaped "&", no single root element) -- this
+            # is what a login page / proxy error page looks like in practice.
+            text="Session expired & redirecting to /login ...",
+            status_code=200,
+        )
+
+        result = pull_odata_metadata(instance)
+        assert result["success"] is False
+        assert "not valid XML" in result["error"]
+
 
 # ── Integration: Mock Picklist API ────────────────────────────────────────
 
@@ -873,6 +998,112 @@ class TestIntegrationPicklistPull:
             assert len(rows) == 2
             codes = {r["external_code"] for r in rows}
             assert codes == {"A", "B"}
+
+    def test_pull_picklist_empty_results(
+        self, requests_mock, mock_auth_password, clean_db
+    ):
+        """An instance with no picklists configured should succeed with zero values,
+        not error out (empty `results` list is a valid, common response)."""
+        from core.db import get_conn, upsert_instance
+        from core.picklist_pull import pull_picklist
+
+        inst_id = upsert_instance(
+            {
+                "alias": "INT_PL_EMPTY",
+                "base_url": "https://int-pl-empty.example.com",
+                "company_id": "PL003",
+                "auth_type": "basic",
+                "username": "admin",
+                "client_id": None,
+                "token_url": None,
+            }
+        )
+        instance = {
+            "id": inst_id,
+            "alias": "INT_PL_EMPTY",
+            "base_url": "https://int-pl-empty.example.com",
+            "company_id": "PL003",
+            "auth_type": "basic",
+            "username": "admin",
+        }
+
+        requests_mock.get(
+            "https://int-pl-empty.example.com/odata/v2/PickListValueV2",
+            json={"d": {"results": [], "__next": None}},
+            status_code=200,
+        )
+
+        result = pull_picklist(instance)
+
+        assert result["success"] is True
+        assert result["total_values"] == 0
+        assert result["total_picklists"] == 0
+
+        with get_conn() as conn:
+            rows = conn.execute(
+                "SELECT * FROM picklist_values WHERE instance_id = ?", (inst_id,)
+            ).fetchall()
+            assert len(rows) == 0
+
+    def test_pull_picklist_retries_on_429_then_succeeds(
+        self, requests_mock, mock_auth_password, clean_db
+    ):
+        """SF throttling (429) should be retried instead of failing the whole pull."""
+        from core.db import upsert_instance
+        from core.picklist_pull import pull_picklist
+
+        inst_id = upsert_instance(
+            {
+                "alias": "INT_PL_RETRY",
+                "base_url": "https://int-pl-retry.example.com",
+                "company_id": "PL004",
+                "auth_type": "basic",
+                "username": "admin",
+                "client_id": None,
+                "token_url": None,
+            }
+        )
+        instance = {
+            "id": inst_id,
+            "alias": "INT_PL_RETRY",
+            "base_url": "https://int-pl-retry.example.com",
+            "company_id": "PL004",
+            "auth_type": "basic",
+            "username": "admin",
+        }
+
+        requests_mock.get(
+            "https://int-pl-retry.example.com/odata/v2/PickListValueV2",
+            [
+                {"status_code": 429, "text": "Too Many Requests"},
+                {
+                    "json": {
+                        "d": {
+                            "results": [
+                                {
+                                    "PickListV2_id": "status",
+                                    "optionId": "OPT1",
+                                    "externalCode": "A",
+                                    "status": "ACTIVE",
+                                    "label_en_US": "A",
+                                    "validFrom": None,
+                                    "validTo": None,
+                                }
+                            ],
+                            "__next": None,
+                        }
+                    },
+                    "status_code": 200,
+                },
+            ],
+        )
+
+        with patch("sapsf_shared.retry.time.sleep"):
+            result = pull_picklist(instance)
+
+        assert result["success"] is True
+        assert result["total_values"] == 1
+        assert requests_mock.call_count == 2
 
 
 # ── Cross-phase integration tests ────────────────────────────────────────

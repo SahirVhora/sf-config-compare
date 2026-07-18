@@ -1,0 +1,356 @@
+{
+  "scriptCompleted": true,
+  "files": [
+    {
+      "path": "_headers",
+      "language": "unknown",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 21,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "yaml",
+      "sizeLines": 24,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "language": "yaml",
+      "sizeLines": 34,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".nojekyll",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".pre-commit-config.yaml",
+      "language": "yaml",
+      "sizeLines": 14,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".python-version",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".serena/project.yml",
+      "language": "yaml",
+      "sizeLines": 133,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/intermediate/scan.stderr",
+      "language": "stderr",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app.py",
+      "language": "python",
+      "sizeLines": 716,
+      "fileCategory": "code"
+    },
+    {
+      "path": "config.py",
+      "language": "python",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "language": "markdown",
+      "sizeLines": 86,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "core/__init__.py",
+      "language": "python",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/ai_analyzer.py",
+      "language": "python",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/api.py",
+      "language": "python",
+      "sizeLines": 484,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/auth.py",
+      "language": "python",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/comparator.py",
+      "language": "python",
+      "sizeLines": 569,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/db.py",
+      "language": "python",
+      "sizeLines": 634,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/odata_metadata_pull.py",
+      "language": "python",
+      "sizeLines": 305,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/picklist_pull.py",
+      "language": "python",
+      "sizeLines": 175,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/reporter.py",
+      "language": "python",
+      "sizeLines": 961,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/scheduler.py",
+      "language": "python",
+      "sizeLines": 264,
+      "fileCategory": "code"
+    },
+    {
+      "path": "Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 15,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "index.html",
+      "language": "html",
+      "sizeLines": 468,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "Procfile",
+      "language": "procfile",
+      "sizeLines": 1,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "toml",
+      "sizeLines": 6,
+      "fileCategory": "config"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 220,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "render.yaml",
+      "language": "yaml",
+      "sizeLines": 12,
+      "fileCategory": "config"
+    },
+    {
+      "path": "requirements-dev.txt",
+      "language": "txt",
+      "sizeLines": 2,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "requirements.txt",
+      "language": "txt",
+      "sizeLines": 17,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "robots.txt",
+      "language": "txt",
+      "sizeLines": 4,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "SECURITY.md",
+      "language": "markdown",
+      "sizeLines": 35,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "sitemap.xml",
+      "language": "xml",
+      "sizeLines": 9,
+      "fileCategory": "config"
+    },
+    {
+      "path": "static/app.js",
+      "language": "javascript",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": "static/style.css",
+      "language": "css",
+      "sizeLines": 134,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/base.html",
+      "language": "html",
+      "sizeLines": 42,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/browse.html",
+      "language": "html",
+      "sizeLines": 174,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/compare.html",
+      "language": "html",
+      "sizeLines": 66,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/history.html",
+      "language": "html",
+      "sizeLines": 45,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/index.html",
+      "language": "html",
+      "sizeLines": 63,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/instance_form.html",
+      "language": "html",
+      "sizeLines": 175,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/matrix.html",
+      "language": "html",
+      "sizeLines": 58,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/pull_status.html",
+      "language": "html",
+      "sizeLines": 38,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/scheduled_checks.html",
+      "language": "html",
+      "sizeLines": 103,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "tests/conftest.py",
+      "language": "python",
+      "sizeLines": 177,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_config.py",
+      "language": "python",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_matrix.py",
+      "language": "python",
+      "sizeLines": 371,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_phases.py",
+      "language": "python",
+      "sizeLines": 930,
+      "fileCategory": "code"
+    }
+  ],
+  "totalFiles": 49,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "moderate",
+  "stats": {
+    "filesScanned": 49,
+    "byCategory": {
+      "code": 22,
+      "config": 6,
+      "infra": 4,
+      "docs": 6,
+      "markup": 11
+    },
+    "byLanguage": {
+      "unknown": 4,
+      "config": 1,
+      "yaml": 5,
+      "stderr": 1,
+      "python": 16,
+      "markdown": 3,
+      "dockerfile": 1,
+      "html": 10,
+      "procfile": 1,
+      "toml": 1,
+      "txt": 3,
+      "xml": 1,
+      "javascript": 1,
+      "css": 1
+    }
+  },
+  "projectName": "SF Config Compare",
+  "name": "SF Config Compare",
+  "projectDescription": "Flask app for comparing SAP SuccessFactors configuration across instances, storing pulls in SQLite, and producing HTML and Excel reports.",
+  "description": "Flask app for comparing SAP SuccessFactors configuration across instances, storing pulls in SQLite, and producing HTML and Excel reports.",
+  "frameworks": [
+    "Flask",
+    "pytest"
+  ],
+  "languages": [
+    "unknown",
+    "config",
+    "yaml",
+    "stderr",
+    "python",
+    "markdown",
+    "dockerfile",
+    "html",
+    "procfile",
+    "toml",
+    "txt",
+    "xml",
+    "javascript",
+    "css"
+  ],
+  "rawDescription": "Flask app for comparing SAP SuccessFactors configuration across instances, storing pulls in SQLite, and producing HTML and Excel reports.",
+  "readmeHead": "# SF Config Compare\n\n[![GitHub Pages](https://img.shields.io/badge/site-GitHub%20Pages-0f9f8f)](https://sahirvhora.github.io/sf-config-compare/)\n[![Python](https://img.shields.io/badge/python-3.11%2B-4b5bdc)](https://www.python.org/)\n[![License](https://img.shields.io/badge/license-MIT-8b5cf6)](LICENSE)\n\nSF Config Compare is a Flask app for comparing SAP SuccessFactors configuration\nacross two or more instances. It pulls OData metadata and picklist values from\neach instance, stores the latest pulls in a local SQLite database, and generates\nside-by-side HTML and Excel comparison reports.\n\nPublic project page: https://sahirvhora.github.io/sf-config-compare/\n\n![SF Config Compare landing page](assets/screenshot-landing.png)\n\n## What It Compares\n\n- OData entities present in one instance but missing in another\n- Field-level metadata differences, including type, required flag, visibility,\n  max length, picklist assignment, and custom-field flag\n- Picklists present in one instance but missing in another\n- Picklist values missing from shared picklists\n- Picklist value differences, including English label, status, and locale labels\n\n### Two-Instance Compare vs N-Instance Matrix\n\n| Mode | When to use |\n|------|-------------|\n| **Compare** (2 instances) | Side-by-side diff of Instance A vs B. Highlights what is only in A, only in B, or differs. |\n| **Matrix** (N instances) | All instances in one view - DEV / STAGING / UAT / PROD side-by-side. Each cell shows the value per instance; amber = differs, green = uniform, red = missing. |\n\n### Selective Picklist Comparison\n\nWhen running a comparison, you can choose which picklist fields to compare:\n\n- **English label** (`label_en`) - compares the English display name\n- **Status** - compares active/inactive status\n- **Locale labels** (e.g. `locale:en_US`) - compares locale-specific overrides\n\nUnchecking fields you don't need speeds up the comparison and produces a\ncleaner report. By default all three options are enabled.\n\n## Setup\n\n### Local (Flask)\n\n```bash\ngit clone https://github.com/SahirVhora/sf-config-compare.git\ncd sf-config-compare\npython3 -m venv .venv\n. .venv/bin/activate\npip install -r requirements.txt\ncp .env.example .env\n# edit .env and set SECRET_KEY (run the command shown in .env.example)\nflask run --port 5050\n```\n\nOpen http://localhost:5050.\n\n### Docker (optional)\n\n```bash\ndocker build -t sf-config-compare .\ndocker run -p 5050:5050 \\\n  -e SECRET_KEY=your-secret-key-here \\\n  sf-config-compare\n```\n\nA `Dockerfile` is included in the repository for containerised deployments.\n\n### Render\n\nThe repository includes a `render.yaml` that configures a free-tier Python web\nservice. Connect your GitHub repo to Render and it picks up the settings\nautomatically.\n\n## Basic Workflow\n\n1. Add two or more SuccessFactors instances.\n2. Run **OData Metadata** for each instance.\n3. Run **Picklist** for each instance.\n4. Choose a comparison mode:\n   - **Compare** - choose Instance A and Instance B, optionally narrow the\n    ",
+  "manifestHead": "[tool.ruff.lint]\nignore = [\n  \"N817\",   # ElementTree imported as ET -- standard alias\n  \"SIM108\", # Use ternary operator -- readability preference\n  \"SIM117\", # Use single `with` -- readability preference\n]\n",
+  "importMap": {}
+}

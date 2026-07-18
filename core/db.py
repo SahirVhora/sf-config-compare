@@ -1,9 +1,21 @@
+import atexit
 import json
 import sqlite3
 import threading
 from contextlib import contextmanager
 
 from config import DB_PATH
+
+
+class ClosingConnection(sqlite3.Connection):
+    """SQLite connection that closes when used as a context manager."""
+
+    def __exit__(self, exc_type, exc_value, traceback):  # type: ignore[override]
+        try:
+            return super().__exit__(exc_type, exc_value, traceback)
+        finally:
+            self.close()
+
 
 # Thread-local connection pool to avoid "SQLite objects created in a thread can only be used
 # in that same thread" errors when Flask's reloader spawns threads.
@@ -28,7 +40,9 @@ def get_conn() -> sqlite3.Connection:
     durability and performance for a read-heavy workload.
     """
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(DB_PATH), check_same_thread=False)
+    conn = sqlite3.connect(
+        str(DB_PATH), check_same_thread=False, factory=ClosingConnection
+    )
     conn.row_factory = sqlite3.Row
     _init_pragmas(conn)
     return conn
@@ -57,12 +71,24 @@ def get_pool_conn() -> sqlite3.Connection:
 
 
 def _close_pool_conn() -> None:
-    """Close the thread-local pooled connection. Call on app shutdown."""
+    """Close the current thread's pooled connection."""
     tid = threading.current_thread().ident
     with _pool_lock:
         conn = _pool.pop(tid, None)
         if conn is not None:
             conn.close()
+
+
+def close_all_pool_conns() -> None:
+    """Close every pooled connection, typically at process shutdown."""
+    with _pool_lock:
+        conns = list(_pool.values())
+        _pool.clear()
+    for conn in conns:
+        conn.close()
+
+
+atexit.register(close_all_pool_conns)
 
 
 @contextmanager

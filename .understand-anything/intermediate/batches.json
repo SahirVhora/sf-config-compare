@@ -1,0 +1,1245 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "louvain",
+  "totalFiles": 49,
+  "totalBatches": 8,
+  "exportsByPath": {
+    "_headers": [],
+    ".nojekyll": [],
+    ".python-version": [],
+    ".understand-anything/.understandignore": [],
+    ".understand-anything/intermediate/scan.stderr": [],
+    "app.py": [
+      "_get_csrf_token",
+      "check_csrf",
+      "_run_pull",
+      "_run_pull_inner",
+      "index",
+      "add_instance",
+      "edit_instance",
+      "del_instance",
+      "trigger_pull",
+      "pull_status",
+      "pull_stream",
+      "browse",
+      "compare",
+      "view_report",
+      "download_report",
+      "test_connection",
+      "_form_to_instance",
+      "_validate_instance_form",
+      "_save_credentials",
+      "instance_history",
+      "scheduled_checks_list",
+      "scheduled_check_add",
+      "scheduled_check_toggle",
+      "scheduled_check_delete",
+      "matrix_compare",
+      "ai_summary"
+    ],
+    "config.py": [],
+    "core/__init__.py": [],
+    "core/ai_analyzer.py": [
+      "_get_openai_client",
+      "summarize_comparison",
+      "_build_prompt"
+    ],
+    "core/api.py": [
+      "_json_err",
+      "_check_report_token",
+      "list_instances",
+      "get_instance_detail",
+      "api_test_connection",
+      "api_compare",
+      "api_compare_report",
+      "api_view_report",
+      "api_download_report",
+      "api_pull_history",
+      "api_pull_history_detail",
+      "api_scheduled_checks",
+      "api_scheduled_check_detail",
+      "api_drift_results",
+      "api_run_scheduled_check",
+      "api_ai_summary",
+      "api_matrix",
+      "health"
+    ],
+    "core/auth.py": [
+      "store_password",
+      "get_password",
+      "store_client_secret",
+      "get_client_secret",
+      "delete_credentials",
+      "format_basic_username",
+      "fetch_oauth_token",
+      "build_instance_auth"
+    ],
+    "core/comparator.py": [
+      "_clean_text",
+      "_norm_status",
+      "compare_instances",
+      "get_all_picklist_locales",
+      "_compare_picklists",
+      "_load_entities",
+      "_load_fields_by_entity",
+      "compare_instances_matrix",
+      "_compare_picklists_matrix"
+    ],
+    "core/db.py": [
+      "_init_pragmas",
+      "get_conn",
+      "get_pool_conn",
+      "_close_pool_conn",
+      "transaction",
+      "_run_migrations",
+      "init_db",
+      "get_all_instances",
+      "get_instance",
+      "get_instance_by_alias",
+      "upsert_instance",
+      "delete_instance",
+      "update_pull_timestamp",
+      "get_entities_for_instance",
+      "get_fields_for_entities",
+      "record_pull_history",
+      "get_pull_history",
+      "get_pull_history_by_id",
+      "save_entity_snapshots",
+      "save_picklist_snapshots",
+      "get_entity_snapshots",
+      "get_picklist_snapshots",
+      "create_scheduled_check",
+      "get_scheduled_checks",
+      "get_scheduled_check",
+      "update_scheduled_check",
+      "delete_scheduled_check",
+      "update_check_last_run",
+      "record_drift_result",
+      "get_drift_results",
+      "get_picklists_for_instance"
+    ],
+    "core/odata_metadata_pull.py": [
+      "pull_odata_metadata",
+      "_build_auth",
+      "_collect_entity_labels",
+      "_parse_entity_types",
+      "_write_to_db",
+      "_clean_attr"
+    ],
+    "core/picklist_pull.py": [
+      "pull_picklist",
+      "_build_auth",
+      "_fetch_all_pages",
+      "_build_picklist_url",
+      "_write_to_db"
+    ],
+    "core/reporter.py": [
+      "_header_style",
+      "_auto_width",
+      "_row_fill",
+      "generate_excel_report",
+      "_write_summary_sheet",
+      "_write_entity_diff_sheet",
+      "_write_field_diff_sheet",
+      "_write_missing_picklists_sheet",
+      "_write_missing_values_sheet",
+      "_write_value_diffs_sheet",
+      "_write_fields_only_sheet",
+      "generate_html_report",
+      "generate_matrix_excel_report",
+      "_write_matrix_summary_sheet",
+      "_write_matrix_entity_sheet",
+      "_write_matrix_field_sheet",
+      "_write_matrix_picklist_sheet",
+      "generate_matrix_html_report"
+    ],
+    "core/scheduler.py": [
+      "get_scheduler",
+      "schedule_check",
+      "unschedule_check",
+      "_run_check_job",
+      "run_drift_check",
+      "_send_webhook"
+    ],
+    "static/app.js": [],
+    "tests/conftest.py": [
+      "clean_db",
+      "client",
+      "sample_instances",
+      "mock_auth_password",
+      "mock_oauth_secret"
+    ],
+    "tests/test_config.py": [
+      "_isolate_env",
+      "_reload_config",
+      "test_secret_key_from_flask_secret_key",
+      "test_secret_key_from_secret_key",
+      "test_secret_key_prefers_secret_key_over_flask",
+      "test_runtime_paths_present",
+      "test_basic_auth_username_adds_company_id"
+    ],
+    "tests/test_matrix.py": [
+      "three_instances",
+      "test_matrix_result_structure",
+      "test_matrix_field1_is_uniform",
+      "test_matrix_field_c_is_not_uniform",
+      "test_matrix_entity_coverage_gap",
+      "test_matrix_entities_with_gaps_count",
+      "test_matrix_picklist_diffs",
+      "test_matrix_requires_min_two_instances",
+      "test_matrix_summary_uniform_count",
+      "test_matrix_excel_generates_file",
+      "test_matrix_html_contains_instance_aliases",
+      "test_matrix_html_shows_field_diffs",
+      "test_matrix_route_get",
+      "test_matrix_route_post_one_instance_flashes_error",
+      "test_matrix_route_post_runs_comparison",
+      "test_matrix_api_returns_200",
+      "test_matrix_api_rejects_single_instance",
+      "test_matrix_api_rejects_empty_ids",
+      "test_matrix_api_rejects_unknown_instance",
+      "test_matrix_api_include_reports_generates_file"
+    ],
+    "tests/test_phases.py": [
+      "TestPhase1SecurityAndAPI",
+      "TestPhase2PullHistory",
+      "TestPhase3EntityFilter",
+      "TestPhase4ScheduledChecks",
+      "TestPhase5AIAnalyzer",
+      "TestIntegrationODataPull",
+      "TestIntegrationPicklistPull",
+      "TestIntegration"
+    ]
+  },
+  "batches": [
+    {
+      "batchIndex": 1,
+      "files": [
+        {
+          "path": "core/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "core/ai_analyzer.py",
+          "language": "python",
+          "sizeLines": 145,
+          "fileCategory": "code"
+        },
+        {
+          "path": "core/comparator.py",
+          "language": "python",
+          "sizeLines": 569,
+          "fileCategory": "code"
+        },
+        {
+          "path": "core/scheduler.py",
+          "language": "python",
+          "sizeLines": 264,
+          "fileCategory": "code"
+        },
+        {
+          "path": "tests/test_matrix.py",
+          "language": "python",
+          "sizeLines": 371,
+          "fileCategory": "code"
+        },
+        {
+          "path": "tests/test_phases.py",
+          "language": "python",
+          "sizeLines": 930,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "core/__init__.py": [],
+        "core/ai_analyzer.py": [],
+        "core/comparator.py": [
+          "core/db.py"
+        ],
+        "core/scheduler.py": [],
+        "tests/test_matrix.py": [
+          "core/comparator.py",
+          "core/db.py",
+          "core/reporter.py"
+        ],
+        "tests/test_phases.py": [
+          "core/__init__.py",
+          "core/ai_analyzer.py",
+          "core/comparator.py",
+          "core/scheduler.py"
+        ]
+      },
+      "neighborMap": {
+        "core/comparator.py": [
+          {
+            "path": "core/db.py",
+            "batchIndex": 3,
+            "symbols": [
+              "_init_pragmas",
+              "get_conn",
+              "get_pool_conn",
+              "_close_pool_conn",
+              "transaction",
+              "_run_migrations",
+              "init_db",
+              "get_all_instances",
+              "get_instance",
+              "get_instance_by_alias",
+              "upsert_instance",
+              "delete_instance",
+              "update_pull_timestamp",
+              "get_entities_for_instance",
+              "get_fields_for_entities",
+              "record_pull_history",
+              "get_pull_history",
+              "get_pull_history_by_id",
+              "save_entity_snapshots",
+              "save_picklist_snapshots",
+              "get_entity_snapshots",
+              "get_picklist_snapshots",
+              "create_scheduled_check",
+              "get_scheduled_checks",
+              "get_scheduled_check",
+              "update_scheduled_check",
+              "delete_scheduled_check",
+              "update_check_last_run",
+              "record_drift_result",
+              "get_drift_results",
+              "get_picklists_for_instance"
+            ]
+          },
+          {
+            "path": "app.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_get_csrf_token",
+              "check_csrf",
+              "_run_pull",
+              "_run_pull_inner",
+              "index",
+              "add_instance",
+              "edit_instance",
+              "del_instance",
+              "trigger_pull",
+              "pull_status",
+              "pull_stream",
+              "browse",
+              "compare",
+              "view_report",
+              "download_report",
+              "test_connection",
+              "_form_to_instance",
+              "_validate_instance_form",
+              "_save_credentials",
+              "instance_history",
+              "scheduled_checks_list",
+              "scheduled_check_add",
+              "scheduled_check_toggle",
+              "scheduled_check_delete",
+              "matrix_compare",
+              "ai_summary"
+            ]
+          },
+          {
+            "path": "core/api.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_json_err",
+              "_check_report_token",
+              "list_instances",
+              "get_instance_detail",
+              "api_test_connection",
+              "api_compare",
+              "api_compare_report",
+              "api_view_report",
+              "api_download_report",
+              "api_pull_history",
+              "api_pull_history_detail",
+              "api_scheduled_checks",
+              "api_scheduled_check_detail",
+              "api_drift_results",
+              "api_run_scheduled_check",
+              "api_ai_summary",
+              "api_matrix",
+              "health"
+            ]
+          }
+        ],
+        "core/scheduler.py": [
+          {
+            "path": "app.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_get_csrf_token",
+              "check_csrf",
+              "_run_pull",
+              "_run_pull_inner",
+              "index",
+              "add_instance",
+              "edit_instance",
+              "del_instance",
+              "trigger_pull",
+              "pull_status",
+              "pull_stream",
+              "browse",
+              "compare",
+              "view_report",
+              "download_report",
+              "test_connection",
+              "_form_to_instance",
+              "_validate_instance_form",
+              "_save_credentials",
+              "instance_history",
+              "scheduled_checks_list",
+              "scheduled_check_add",
+              "scheduled_check_toggle",
+              "scheduled_check_delete",
+              "matrix_compare",
+              "ai_summary"
+            ]
+          }
+        ],
+        "tests/test_matrix.py": [
+          {
+            "path": "core/db.py",
+            "batchIndex": 3,
+            "symbols": [
+              "_init_pragmas",
+              "get_conn",
+              "get_pool_conn",
+              "_close_pool_conn",
+              "transaction",
+              "_run_migrations",
+              "init_db",
+              "get_all_instances",
+              "get_instance",
+              "get_instance_by_alias",
+              "upsert_instance",
+              "delete_instance",
+              "update_pull_timestamp",
+              "get_entities_for_instance",
+              "get_fields_for_entities",
+              "record_pull_history",
+              "get_pull_history",
+              "get_pull_history_by_id",
+              "save_entity_snapshots",
+              "save_picklist_snapshots",
+              "get_entity_snapshots",
+              "get_picklist_snapshots",
+              "create_scheduled_check",
+              "get_scheduled_checks",
+              "get_scheduled_check",
+              "update_scheduled_check",
+              "delete_scheduled_check",
+              "update_check_last_run",
+              "record_drift_result",
+              "get_drift_results",
+              "get_picklists_for_instance"
+            ]
+          },
+          {
+            "path": "core/reporter.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_header_style",
+              "_auto_width",
+              "_row_fill",
+              "generate_excel_report",
+              "_write_summary_sheet",
+              "_write_entity_diff_sheet",
+              "_write_field_diff_sheet",
+              "_write_missing_picklists_sheet",
+              "_write_missing_values_sheet",
+              "_write_value_diffs_sheet",
+              "_write_fields_only_sheet",
+              "generate_html_report",
+              "generate_matrix_excel_report",
+              "_write_matrix_summary_sheet",
+              "_write_matrix_entity_sheet",
+              "_write_matrix_field_sheet",
+              "_write_matrix_picklist_sheet",
+              "generate_matrix_html_report"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 2,
+      "files": [
+        {
+          "path": "app.py",
+          "language": "python",
+          "sizeLines": 716,
+          "fileCategory": "code"
+        },
+        {
+          "path": "config.py",
+          "language": "python",
+          "sizeLines": 23,
+          "fileCategory": "code"
+        },
+        {
+          "path": "core/api.py",
+          "language": "python",
+          "sizeLines": 484,
+          "fileCategory": "code"
+        },
+        {
+          "path": "core/reporter.py",
+          "language": "python",
+          "sizeLines": 961,
+          "fileCategory": "code"
+        },
+        {
+          "path": "tests/conftest.py",
+          "language": "python",
+          "sizeLines": 177,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "app.py": [
+          "config.py",
+          "core/api.py",
+          "core/auth.py",
+          "core/comparator.py",
+          "core/db.py",
+          "core/reporter.py",
+          "core/scheduler.py"
+        ],
+        "config.py": [],
+        "core/api.py": [
+          "config.py",
+          "core/comparator.py",
+          "core/db.py",
+          "core/reporter.py"
+        ],
+        "core/reporter.py": [
+          "config.py"
+        ],
+        "tests/conftest.py": [
+          "app.py",
+          "config.py",
+          "core/db.py"
+        ]
+      },
+      "neighborMap": {
+        "app.py": [
+          {
+            "path": "core/auth.py",
+            "batchIndex": 3,
+            "symbols": [
+              "store_password",
+              "get_password",
+              "store_client_secret",
+              "get_client_secret",
+              "delete_credentials",
+              "format_basic_username",
+              "fetch_oauth_token",
+              "build_instance_auth"
+            ]
+          },
+          {
+            "path": "core/comparator.py",
+            "batchIndex": 1,
+            "symbols": [
+              "_clean_text",
+              "_norm_status",
+              "compare_instances",
+              "get_all_picklist_locales",
+              "_compare_picklists",
+              "_load_entities",
+              "_load_fields_by_entity",
+              "compare_instances_matrix",
+              "_compare_picklists_matrix"
+            ]
+          },
+          {
+            "path": "core/db.py",
+            "batchIndex": 3,
+            "symbols": [
+              "_init_pragmas",
+              "get_conn",
+              "get_pool_conn",
+              "_close_pool_conn",
+              "transaction",
+              "_run_migrations",
+              "init_db",
+              "get_all_instances",
+              "get_instance",
+              "get_instance_by_alias",
+              "upsert_instance",
+              "delete_instance",
+              "update_pull_timestamp",
+              "get_entities_for_instance",
+              "get_fields_for_entities",
+              "record_pull_history",
+              "get_pull_history",
+              "get_pull_history_by_id",
+              "save_entity_snapshots",
+              "save_picklist_snapshots",
+              "get_entity_snapshots",
+              "get_picklist_snapshots",
+              "create_scheduled_check",
+              "get_scheduled_checks",
+              "get_scheduled_check",
+              "update_scheduled_check",
+              "delete_scheduled_check",
+              "update_check_last_run",
+              "record_drift_result",
+              "get_drift_results",
+              "get_picklists_for_instance"
+            ]
+          },
+          {
+            "path": "core/scheduler.py",
+            "batchIndex": 1,
+            "symbols": [
+              "get_scheduler",
+              "schedule_check",
+              "unschedule_check",
+              "_run_check_job",
+              "run_drift_check",
+              "_send_webhook"
+            ]
+          }
+        ],
+        "config.py": [
+          {
+            "path": "core/db.py",
+            "batchIndex": 3,
+            "symbols": [
+              "_init_pragmas",
+              "get_conn",
+              "get_pool_conn",
+              "_close_pool_conn",
+              "transaction",
+              "_run_migrations",
+              "init_db",
+              "get_all_instances",
+              "get_instance",
+              "get_instance_by_alias",
+              "upsert_instance",
+              "delete_instance",
+              "update_pull_timestamp",
+              "get_entities_for_instance",
+              "get_fields_for_entities",
+              "record_pull_history",
+              "get_pull_history",
+              "get_pull_history_by_id",
+              "save_entity_snapshots",
+              "save_picklist_snapshots",
+              "get_entity_snapshots",
+              "get_picklist_snapshots",
+              "create_scheduled_check",
+              "get_scheduled_checks",
+              "get_scheduled_check",
+              "update_scheduled_check",
+              "delete_scheduled_check",
+              "update_check_last_run",
+              "record_drift_result",
+              "get_drift_results",
+              "get_picklists_for_instance"
+            ]
+          }
+        ],
+        "core/api.py": [
+          {
+            "path": "core/comparator.py",
+            "batchIndex": 1,
+            "symbols": [
+              "_clean_text",
+              "_norm_status",
+              "compare_instances",
+              "get_all_picklist_locales",
+              "_compare_picklists",
+              "_load_entities",
+              "_load_fields_by_entity",
+              "compare_instances_matrix",
+              "_compare_picklists_matrix"
+            ]
+          },
+          {
+            "path": "core/db.py",
+            "batchIndex": 3,
+            "symbols": [
+              "_init_pragmas",
+              "get_conn",
+              "get_pool_conn",
+              "_close_pool_conn",
+              "transaction",
+              "_run_migrations",
+              "init_db",
+              "get_all_instances",
+              "get_instance",
+              "get_instance_by_alias",
+              "upsert_instance",
+              "delete_instance",
+              "update_pull_timestamp",
+              "get_entities_for_instance",
+              "get_fields_for_entities",
+              "record_pull_history",
+              "get_pull_history",
+              "get_pull_history_by_id",
+              "save_entity_snapshots",
+              "save_picklist_snapshots",
+              "get_entity_snapshots",
+              "get_picklist_snapshots",
+              "create_scheduled_check",
+              "get_scheduled_checks",
+              "get_scheduled_check",
+              "update_scheduled_check",
+              "delete_scheduled_check",
+              "update_check_last_run",
+              "record_drift_result",
+              "get_drift_results",
+              "get_picklists_for_instance"
+            ]
+          }
+        ],
+        "core/reporter.py": [
+          {
+            "path": "tests/test_matrix.py",
+            "batchIndex": 1,
+            "symbols": [
+              "three_instances",
+              "test_matrix_result_structure",
+              "test_matrix_field1_is_uniform",
+              "test_matrix_field_c_is_not_uniform",
+              "test_matrix_entity_coverage_gap",
+              "test_matrix_entities_with_gaps_count",
+              "test_matrix_picklist_diffs",
+              "test_matrix_requires_min_two_instances",
+              "test_matrix_summary_uniform_count",
+              "test_matrix_excel_generates_file",
+              "test_matrix_html_contains_instance_aliases",
+              "test_matrix_html_shows_field_diffs",
+              "test_matrix_route_get",
+              "test_matrix_route_post_one_instance_flashes_error",
+              "test_matrix_route_post_runs_comparison",
+              "test_matrix_api_returns_200",
+              "test_matrix_api_rejects_single_instance",
+              "test_matrix_api_rejects_empty_ids",
+              "test_matrix_api_rejects_unknown_instance",
+              "test_matrix_api_include_reports_generates_file"
+            ]
+          }
+        ],
+        "tests/conftest.py": [
+          {
+            "path": "core/db.py",
+            "batchIndex": 3,
+            "symbols": [
+              "_init_pragmas",
+              "get_conn",
+              "get_pool_conn",
+              "_close_pool_conn",
+              "transaction",
+              "_run_migrations",
+              "init_db",
+              "get_all_instances",
+              "get_instance",
+              "get_instance_by_alias",
+              "upsert_instance",
+              "delete_instance",
+              "update_pull_timestamp",
+              "get_entities_for_instance",
+              "get_fields_for_entities",
+              "record_pull_history",
+              "get_pull_history",
+              "get_pull_history_by_id",
+              "save_entity_snapshots",
+              "save_picklist_snapshots",
+              "get_entity_snapshots",
+              "get_picklist_snapshots",
+              "create_scheduled_check",
+              "get_scheduled_checks",
+              "get_scheduled_check",
+              "update_scheduled_check",
+              "delete_scheduled_check",
+              "update_check_last_run",
+              "record_drift_result",
+              "get_drift_results",
+              "get_picklists_for_instance"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 3,
+      "files": [
+        {
+          "path": "core/auth.py",
+          "language": "python",
+          "sizeLines": 124,
+          "fileCategory": "code"
+        },
+        {
+          "path": "core/db.py",
+          "language": "python",
+          "sizeLines": 634,
+          "fileCategory": "code"
+        },
+        {
+          "path": "core/odata_metadata_pull.py",
+          "language": "python",
+          "sizeLines": 305,
+          "fileCategory": "code"
+        },
+        {
+          "path": "core/picklist_pull.py",
+          "language": "python",
+          "sizeLines": 175,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "core/auth.py": [],
+        "core/db.py": [
+          "config.py"
+        ],
+        "core/odata_metadata_pull.py": [
+          "core/auth.py",
+          "core/db.py"
+        ],
+        "core/picklist_pull.py": [
+          "core/auth.py",
+          "core/db.py"
+        ]
+      },
+      "neighborMap": {
+        "core/auth.py": [
+          {
+            "path": "app.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_get_csrf_token",
+              "check_csrf",
+              "_run_pull",
+              "_run_pull_inner",
+              "index",
+              "add_instance",
+              "edit_instance",
+              "del_instance",
+              "trigger_pull",
+              "pull_status",
+              "pull_stream",
+              "browse",
+              "compare",
+              "view_report",
+              "download_report",
+              "test_connection",
+              "_form_to_instance",
+              "_validate_instance_form",
+              "_save_credentials",
+              "instance_history",
+              "scheduled_checks_list",
+              "scheduled_check_add",
+              "scheduled_check_toggle",
+              "scheduled_check_delete",
+              "matrix_compare",
+              "ai_summary"
+            ]
+          }
+        ],
+        "core/db.py": [
+          {
+            "path": "config.py",
+            "batchIndex": 2,
+            "symbols": []
+          },
+          {
+            "path": "app.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_get_csrf_token",
+              "check_csrf",
+              "_run_pull",
+              "_run_pull_inner",
+              "index",
+              "add_instance",
+              "edit_instance",
+              "del_instance",
+              "trigger_pull",
+              "pull_status",
+              "pull_stream",
+              "browse",
+              "compare",
+              "view_report",
+              "download_report",
+              "test_connection",
+              "_form_to_instance",
+              "_validate_instance_form",
+              "_save_credentials",
+              "instance_history",
+              "scheduled_checks_list",
+              "scheduled_check_add",
+              "scheduled_check_toggle",
+              "scheduled_check_delete",
+              "matrix_compare",
+              "ai_summary"
+            ]
+          },
+          {
+            "path": "core/api.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_json_err",
+              "_check_report_token",
+              "list_instances",
+              "get_instance_detail",
+              "api_test_connection",
+              "api_compare",
+              "api_compare_report",
+              "api_view_report",
+              "api_download_report",
+              "api_pull_history",
+              "api_pull_history_detail",
+              "api_scheduled_checks",
+              "api_scheduled_check_detail",
+              "api_drift_results",
+              "api_run_scheduled_check",
+              "api_ai_summary",
+              "api_matrix",
+              "health"
+            ]
+          },
+          {
+            "path": "core/comparator.py",
+            "batchIndex": 1,
+            "symbols": [
+              "_clean_text",
+              "_norm_status",
+              "compare_instances",
+              "get_all_picklist_locales",
+              "_compare_picklists",
+              "_load_entities",
+              "_load_fields_by_entity",
+              "compare_instances_matrix",
+              "_compare_picklists_matrix"
+            ]
+          },
+          {
+            "path": "tests/conftest.py",
+            "batchIndex": 2,
+            "symbols": [
+              "clean_db",
+              "client",
+              "sample_instances",
+              "mock_auth_password",
+              "mock_oauth_secret"
+            ]
+          },
+          {
+            "path": "tests/test_matrix.py",
+            "batchIndex": 1,
+            "symbols": [
+              "three_instances",
+              "test_matrix_result_structure",
+              "test_matrix_field1_is_uniform",
+              "test_matrix_field_c_is_not_uniform",
+              "test_matrix_entity_coverage_gap",
+              "test_matrix_entities_with_gaps_count",
+              "test_matrix_picklist_diffs",
+              "test_matrix_requires_min_two_instances",
+              "test_matrix_summary_uniform_count",
+              "test_matrix_excel_generates_file",
+              "test_matrix_html_contains_instance_aliases",
+              "test_matrix_html_shows_field_diffs",
+              "test_matrix_route_get",
+              "test_matrix_route_post_one_instance_flashes_error",
+              "test_matrix_route_post_runs_comparison",
+              "test_matrix_api_returns_200",
+              "test_matrix_api_rejects_single_instance",
+              "test_matrix_api_rejects_empty_ids",
+              "test_matrix_api_rejects_unknown_instance",
+              "test_matrix_api_include_reports_generates_file"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 4,
+      "files": [
+        {
+          "path": "Dockerfile",
+          "language": "dockerfile",
+          "sizeLines": 15,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        "Dockerfile": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 5,
+      "files": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "language": "yaml",
+          "sizeLines": 24,
+          "fileCategory": "infra"
+        },
+        {
+          "path": ".github/workflows/pages.yml",
+          "language": "yaml",
+          "sizeLines": 34,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        ".github/workflows/ci.yml": [],
+        ".github/workflows/pages.yml": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 6,
+      "files": [
+        {
+          "path": ".env.example",
+          "language": "config",
+          "sizeLines": 21,
+          "fileCategory": "config"
+        },
+        {
+          "path": ".pre-commit-config.yaml",
+          "language": "yaml",
+          "sizeLines": 14,
+          "fileCategory": "config"
+        },
+        {
+          "path": "CONTRIBUTING.md",
+          "language": "markdown",
+          "sizeLines": 86,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "Procfile",
+          "language": "procfile",
+          "sizeLines": 1,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "README.md",
+          "language": "markdown",
+          "sizeLines": 220,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "SECURITY.md",
+          "language": "markdown",
+          "sizeLines": 35,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "index.html",
+          "language": "html",
+          "sizeLines": 468,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "pyproject.toml",
+          "language": "toml",
+          "sizeLines": 6,
+          "fileCategory": "config"
+        },
+        {
+          "path": "render.yaml",
+          "language": "yaml",
+          "sizeLines": 12,
+          "fileCategory": "config"
+        },
+        {
+          "path": "requirements-dev.txt",
+          "language": "txt",
+          "sizeLines": 2,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "requirements.txt",
+          "language": "txt",
+          "sizeLines": 17,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "robots.txt",
+          "language": "txt",
+          "sizeLines": 4,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "sitemap.xml",
+          "language": "xml",
+          "sizeLines": 9,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        ".env.example": [],
+        ".pre-commit-config.yaml": [],
+        "CONTRIBUTING.md": [],
+        "Procfile": [],
+        "README.md": [],
+        "SECURITY.md": [],
+        "index.html": [],
+        "pyproject.toml": [],
+        "render.yaml": [],
+        "requirements-dev.txt": [],
+        "requirements.txt": [],
+        "robots.txt": [],
+        "sitemap.xml": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 7,
+      "files": [
+        {
+          "path": "templates/base.html",
+          "language": "html",
+          "sizeLines": 42,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "templates/browse.html",
+          "language": "html",
+          "sizeLines": 174,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "templates/compare.html",
+          "language": "html",
+          "sizeLines": 66,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "templates/history.html",
+          "language": "html",
+          "sizeLines": 45,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "templates/index.html",
+          "language": "html",
+          "sizeLines": 63,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "templates/instance_form.html",
+          "language": "html",
+          "sizeLines": 175,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "templates/matrix.html",
+          "language": "html",
+          "sizeLines": 58,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "templates/pull_status.html",
+          "language": "html",
+          "sizeLines": 38,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "templates/scheduled_checks.html",
+          "language": "html",
+          "sizeLines": 103,
+          "fileCategory": "markup"
+        }
+      ],
+      "batchImportData": {
+        "templates/base.html": [],
+        "templates/browse.html": [],
+        "templates/compare.html": [],
+        "templates/history.html": [],
+        "templates/index.html": [],
+        "templates/instance_form.html": [],
+        "templates/matrix.html": [],
+        "templates/pull_status.html": [],
+        "templates/scheduled_checks.html": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 8,
+      "files": [
+        {
+          "path": "_headers",
+          "language": "unknown",
+          "sizeLines": 5,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".nojekyll",
+          "language": "unknown",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".python-version",
+          "language": "unknown",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".serena/project.yml",
+          "language": "yaml",
+          "sizeLines": 133,
+          "fileCategory": "config"
+        },
+        {
+          "path": ".understand-anything/.understandignore",
+          "language": "unknown",
+          "sizeLines": 32,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".understand-anything/intermediate/scan.stderr",
+          "language": "stderr",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "static/app.js",
+          "language": "javascript",
+          "sizeLines": 73,
+          "fileCategory": "code"
+        },
+        {
+          "path": "static/style.css",
+          "language": "css",
+          "sizeLines": 134,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "tests/test_config.py",
+          "language": "python",
+          "sizeLines": 77,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "_headers": [],
+        ".nojekyll": [],
+        ".python-version": [],
+        ".serena/project.yml": [],
+        ".understand-anything/.understandignore": [],
+        ".understand-anything/intermediate/scan.stderr": [],
+        "static/app.js": [],
+        "static/style.css": [],
+        "tests/test_config.py": []
+      },
+      "neighborMap": {}
+    }
+  ]
+}

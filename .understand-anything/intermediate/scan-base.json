@@ -1,0 +1,328 @@
+{
+  "scriptCompleted": true,
+  "files": [
+    {
+      "path": "_headers",
+      "language": "unknown",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 21,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "yaml",
+      "sizeLines": 24,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "language": "yaml",
+      "sizeLines": 34,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".nojekyll",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".pre-commit-config.yaml",
+      "language": "yaml",
+      "sizeLines": 14,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".python-version",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".serena/project.yml",
+      "language": "yaml",
+      "sizeLines": 133,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/intermediate/scan.stderr",
+      "language": "stderr",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app.py",
+      "language": "python",
+      "sizeLines": 716,
+      "fileCategory": "code"
+    },
+    {
+      "path": "config.py",
+      "language": "python",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "language": "markdown",
+      "sizeLines": 86,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "core/__init__.py",
+      "language": "python",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/ai_analyzer.py",
+      "language": "python",
+      "sizeLines": 145,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/api.py",
+      "language": "python",
+      "sizeLines": 484,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/auth.py",
+      "language": "python",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/comparator.py",
+      "language": "python",
+      "sizeLines": 569,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/db.py",
+      "language": "python",
+      "sizeLines": 634,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/odata_metadata_pull.py",
+      "language": "python",
+      "sizeLines": 305,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/picklist_pull.py",
+      "language": "python",
+      "sizeLines": 175,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/reporter.py",
+      "language": "python",
+      "sizeLines": 961,
+      "fileCategory": "code"
+    },
+    {
+      "path": "core/scheduler.py",
+      "language": "python",
+      "sizeLines": 264,
+      "fileCategory": "code"
+    },
+    {
+      "path": "Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 15,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "index.html",
+      "language": "html",
+      "sizeLines": 468,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "Procfile",
+      "language": "procfile",
+      "sizeLines": 1,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "toml",
+      "sizeLines": 6,
+      "fileCategory": "config"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 220,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "render.yaml",
+      "language": "yaml",
+      "sizeLines": 12,
+      "fileCategory": "config"
+    },
+    {
+      "path": "requirements-dev.txt",
+      "language": "txt",
+      "sizeLines": 2,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "requirements.txt",
+      "language": "txt",
+      "sizeLines": 17,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "robots.txt",
+      "language": "txt",
+      "sizeLines": 4,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "SECURITY.md",
+      "language": "markdown",
+      "sizeLines": 35,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "sitemap.xml",
+      "language": "xml",
+      "sizeLines": 9,
+      "fileCategory": "config"
+    },
+    {
+      "path": "static/app.js",
+      "language": "javascript",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": "static/style.css",
+      "language": "css",
+      "sizeLines": 134,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/base.html",
+      "language": "html",
+      "sizeLines": 42,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/browse.html",
+      "language": "html",
+      "sizeLines": 174,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/compare.html",
+      "language": "html",
+      "sizeLines": 66,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/history.html",
+      "language": "html",
+      "sizeLines": 45,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/index.html",
+      "language": "html",
+      "sizeLines": 63,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/instance_form.html",
+      "language": "html",
+      "sizeLines": 175,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/matrix.html",
+      "language": "html",
+      "sizeLines": 58,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/pull_status.html",
+      "language": "html",
+      "sizeLines": 38,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "templates/scheduled_checks.html",
+      "language": "html",
+      "sizeLines": 103,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "tests/conftest.py",
+      "language": "python",
+      "sizeLines": 177,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_config.py",
+      "language": "python",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_matrix.py",
+      "language": "python",
+      "sizeLines": 371,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_phases.py",
+      "language": "python",
+      "sizeLines": 930,
+      "fileCategory": "code"
+    }
+  ],
+  "totalFiles": 49,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "moderate",
+  "stats": {
+    "filesScanned": 49,
+    "byCategory": {
+      "code": 22,
+      "config": 6,
+      "infra": 4,
+      "docs": 6,
+      "markup": 11
+    },
+    "byLanguage": {
+      "unknown": 4,
+      "config": 1,
+      "yaml": 5,
+      "stderr": 1,
+      "python": 16,
+      "markdown": 3,
+      "dockerfile": 1,
+      "html": 10,
+      "procfile": 1,
+      "toml": 1,
+      "txt": 3,
+      "xml": 1,
+      "javascript": 1,
+      "css": 1
+    }
+  }
+}

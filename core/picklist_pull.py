@@ -3,10 +3,11 @@ import logging
 import time
 from datetime import date, datetime
 
-import requests
-
 from core.auth import build_instance_auth
 from core.db import get_conn, record_pull_history
+from sapsf_shared.exceptions import SFClientError
+from sapsf_shared.pagination import trusted_pagination_url
+from sapsf_shared.retry import get_with_retry
 from sapsf_shared.utils import parse_sf_date
 
 logger = logging.getLogger(__name__)
@@ -87,17 +88,23 @@ def _fetch_all_pages(base_url: str, headers: dict, auth, emit) -> list:
     skip = 0
     url = _build_picklist_url(endpoint, skip)
     page = 0
+    seen_urls: set[str] = set()
     while url:
+        if url in seen_urls:
+            raise SFClientError("Detected OData pagination cycle", url=url)
+        seen_urls.add(url)
         page += 1
         emit("fetch", "in-progress", f"Fetching page {page}…", 20 + min(page * 5, 55))
-        resp = requests.get(url, headers=headers, auth=auth, verify=True, timeout=60)
+        resp = get_with_retry(url, headers=headers, auth=auth, verify=True, timeout=60)
         resp.raise_for_status()
         data = resp.json().get("d", {})
         results = data.get("results", [])
         all_results.extend(results)
         next_url = data.get("__next")  # OData next-page link
         if next_url:
-            url = next_url
+            url = trusted_pagination_url(
+                f"{base_url}/odata/v2", next_url, url
+            )
         elif len(results) == PAGE_SIZE:
             skip += PAGE_SIZE
             url = _build_picklist_url(endpoint, skip)

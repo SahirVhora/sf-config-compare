@@ -47,12 +47,12 @@ cleaner report. By default all three options are enabled.
 ```bash
 git clone https://github.com/SahirVhora/sf-config-compare.git
 cd sf-config-compare
-python3 -m venv .venv
+python3.11 -m venv .venv
 . .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 cp .env.example .env
 # edit .env and set SECRET_KEY (run the command shown in .env.example)
-flask run --port 5050
+python -m flask run --port 5050
 ```
 
 Open http://localhost:5050.
@@ -189,7 +189,7 @@ Runtime data is stored locally and ignored by git:
 ## Development
 
 ```bash
-pip install -r requirements-dev.txt
+python -m pip install -r requirements-dev.txt
 pytest -q
 python3 -m compileall app.py core
 ```

@@ -1,0 +1,97 @@
+{
+  "scriptCompleted": true,
+  "stats": {
+    "filesScanned": 49,
+    "filesWithImports": 10,
+    "totalEdges": 28
+  },
+  "importMap": {
+    "_headers": [],
+    ".env.example": [],
+    ".github/workflows/ci.yml": [],
+    ".github/workflows/pages.yml": [],
+    ".nojekyll": [],
+    ".pre-commit-config.yaml": [],
+    ".python-version": [],
+    ".serena/project.yml": [],
+    ".understand-anything/.understandignore": [],
+    ".understand-anything/intermediate/scan.stderr": [],
+    "app.py": [
+      "config.py",
+      "core/api.py",
+      "core/auth.py",
+      "core/comparator.py",
+      "core/db.py",
+      "core/reporter.py",
+      "core/scheduler.py"
+    ],
+    "config.py": [],
+    "CONTRIBUTING.md": [],
+    "core/__init__.py": [],
+    "core/ai_analyzer.py": [],
+    "core/api.py": [
+      "config.py",
+      "core/comparator.py",
+      "core/db.py",
+      "core/reporter.py"
+    ],
+    "core/auth.py": [],
+    "core/comparator.py": [
+      "core/db.py"
+    ],
+    "core/db.py": [
+      "config.py"
+    ],
+    "core/odata_metadata_pull.py": [
+      "core/auth.py",
+      "core/db.py"
+    ],
+    "core/picklist_pull.py": [
+      "core/auth.py",
+      "core/db.py"
+    ],
+    "core/reporter.py": [
+      "config.py"
+    ],
+    "core/scheduler.py": [],
+    "Dockerfile": [],
+    "index.html": [],
+    "Procfile": [],
+    "pyproject.toml": [],
+    "README.md": [],
+    "render.yaml": [],
+    "requirements-dev.txt": [],
+    "requirements.txt": [],
+    "robots.txt": [],
+    "SECURITY.md": [],
+    "sitemap.xml": [],
+    "static/app.js": [],
+    "static/style.css": [],
+    "templates/base.html": [],
+    "templates/browse.html": [],
+    "templates/compare.html": [],
+    "templates/history.html": [],
+    "templates/index.html": [],
+    "templates/instance_form.html": [],
+    "templates/matrix.html": [],
+    "templates/pull_status.html": [],
+    "templates/scheduled_checks.html": [],
+    "tests/conftest.py": [
+      "app.py",
+      "config.py",
+      "core/db.py"
+    ],
+    "tests/test_config.py": [],
+    "tests/test_matrix.py": [
+      "core/comparator.py",
+      "core/db.py",
+      "core/reporter.py"
+    ],
+    "tests/test_phases.py": [
+      "core/__init__.py",
+      "core/ai_analyzer.py",
+      "core/comparator.py",
+      "core/scheduler.py"
+    ]
+  }
+}

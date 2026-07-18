@@ -3,7 +3,7 @@ db/
 reports/
 logs/
 .env
-.venv/
+.venv*/
 venv/
 .pytest_cache/
 __pycache__/
@@ -14,3 +14,8 @@ __pycache__/
 .secrets.json
 screenshots/
 dist/
+
+.audit-result.json
+.claude/settings.local.json
+.under-anything/
+.DS_Store
