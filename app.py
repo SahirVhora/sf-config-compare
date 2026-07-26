@@ -12,6 +12,7 @@ from logging.handlers import RotatingFileHandler
 
 from config import LOG_LEVEL, LOGS_DIR, REPORT_ACCESS_TOKEN, REPORTS_DIR, SECRET_KEY
 from core.api import api as _api_blueprint
+from sapsf_shared.flask_base import check_local_token
 from core.auth import (
     delete_credentials,
     get_client_secret,
@@ -426,12 +427,20 @@ def compare():
     return render_template("compare.html", instances=instances)
 
 
+def _gate_report_token() -> None:
+    """ADR-0003: header-first report token gate (query string deprecated)."""
+    if not check_local_token(REPORT_ACCESS_TOKEN):
+        abort(
+            403,
+            "Missing or invalid report access token; pass via X-Report-Token header",
+        )
+
+
 @app.route("/reports/<report_id>/view")
 def view_report(report_id):
     if not re.match(r"^[A-Za-z0-9_\-]{3,160}$", report_id):
         abort(400, "Invalid report ID")
-    if REPORT_ACCESS_TOKEN and request.args.get("token") != REPORT_ACCESS_TOKEN:
-        abort(403, "Missing or invalid report access token")
+    _gate_report_token()
     report_path = REPORTS_DIR / f"{report_id}.html"
     try:
         resolved = report_path.resolve()
@@ -448,8 +457,7 @@ def view_report(report_id):
 
 @app.route("/reports/<report_id>/download")
 def download_report(report_id):
-    if REPORT_ACCESS_TOKEN and request.args.get("token") != REPORT_ACCESS_TOKEN:
-        abort(403, "Missing or invalid report access token")
+    _gate_report_token()
     from flask import send_file
 
     xlsx = REPORTS_DIR / f"{report_id}.xlsx"
