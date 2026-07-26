@@ -13,6 +13,7 @@ import logging
 
 from config import REPORT_ACCESS_TOKEN, REPORTS_DIR
 from flask import Blueprint, abort, jsonify, request
+from sapsf_shared.flask_base import check_local_token
 
 from core.comparator import compare_instances, compare_instances_matrix
 from core.db import get_all_instances, get_instance
@@ -34,7 +35,9 @@ def _json_err(
 
 
 def _check_report_token() -> None:
-    if REPORT_ACCESS_TOKEN and request.args.get("token") != REPORT_ACCESS_TOKEN:
+    # ADR-0003: header-first, query-string fallback is deprecated.
+    # See sapsf/_shared/src/sapsf_shared/flask_base.check_local_token.
+    if not check_local_token(REPORT_ACCESS_TOKEN):
         abort(403)
 
 
@@ -214,7 +217,10 @@ def api_compare_report():
     html_path = REPORTS_DIR / f"{report_id}.html"
     html_path.write_text(html_content, encoding="utf-8")
 
-    token_q = f"?token={REPORT_ACCESS_TOKEN}" if REPORT_ACCESS_TOKEN else ""
+    # ADR-0003: do not embed the access token in report URLs. Callers
+    # must add the X-Report-Token header on download/view. The token
+    # is still validated by ``_check_report_token`` via header (or the
+    # deprecated query-string fallback) on the actual request.
     return jsonify(
         {
             "comparison": {
@@ -224,8 +230,17 @@ def api_compare_report():
                 "picklist_result": result["picklist_result"],
             },
             "reports": {
-                "html": f"/api/v1/reports/{report_id}/view{token_q}",
-                "xlsx": f"/api/v1/reports/{report_id}/download{token_q}",
+                "html": f"/api/v1/reports/{report_id}/view",
+                "xlsx": f"/api/v1/reports/{report_id}/download",
+                "auth": {
+                    "scheme": "header",
+                    "header": "X-Report-Token",
+                    "note": (
+                        "Token must be supplied as the X-Report-Token "
+                        "header on each report fetch. Query-string "
+                        "delivery is deprecated."
+                    ),
+                },
             },
         }
     )
