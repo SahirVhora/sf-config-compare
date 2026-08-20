@@ -1,7 +1,8 @@
 import logging
 import re
 
-from core.db import get_conn
+from core.db import get_conn, get_instance
+from core.quality_analyzer import analyze_migration_readiness
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +128,7 @@ def compare_instances(
         instance_a_id, instance_b_id, picklist_fields
     )
 
-    return {
+    result = {
         "summary": {
             "entities_only_in_a": len(only_in_a),
             "entities_only_in_b": len(only_in_b),
@@ -142,6 +143,15 @@ def compare_instances(
         "field_diffs": field_diffs,
         "picklist_result": picklist_result,
     }
+
+    instance_a = get_instance(instance_a_id) or {}
+    instance_b = get_instance(instance_b_id) or {}
+    result["quality_analysis"] = analyze_migration_readiness(
+        instance_a.get("alias", f"instance-{instance_a_id}"),
+        instance_b.get("alias", f"instance-{instance_b_id}"),
+        result,
+    )
+    return result
 
 
 def get_all_picklist_locales(instance_ids: list[int]) -> list[str]:

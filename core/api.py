@@ -167,6 +167,7 @@ def api_compare():
             "instance_a": inst_a["alias"],
             "instance_b": inst_b["alias"],
             "summary": result["summary"],
+            "quality_analysis": result["quality_analysis"],
             "entity_diffs": result["entity_diffs"],
             "field_diffs": result["field_diffs"],
             "picklist_result": result["picklist_result"],
@@ -225,6 +226,7 @@ def api_compare_report():
         {
             "comparison": {
                 "summary": result["summary"],
+                "quality_analysis": result["quality_analysis"],
                 "entity_diffs": result["entity_diffs"],
                 "field_diffs": result["field_diffs"],
                 "picklist_result": result["picklist_result"],

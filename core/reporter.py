@@ -45,6 +45,13 @@ def _row_fill(ws, row: int, ncols: int, color: str):
         ws.cell(row=row, column=c).fill = fill
 
 
+def _excel_safe(value):
+    """Prevent tenant-controlled text from becoming an Excel formula."""
+    if isinstance(value, str) and value.startswith(("=", "+", "-", "@", "\t", "\r")):
+        return f"'{value}"
+    return value
+
+
 def generate_excel_report(
     alias_a: str, alias_b: str, result: dict, instance_a: dict, instance_b: dict
 ) -> Path:
@@ -59,6 +66,9 @@ def generate_excel_report(
     _write_summary_sheet(
         ws, alias_a, alias_b, result, instance_a, instance_b, timestamp
     )
+
+    ws_q = wb.create_sheet("Validation Findings")
+    _write_validation_findings_sheet(ws_q, result.get("quality_analysis", {}))
 
     ws_e = wb.create_sheet("Missing Entities")
     _write_entity_diff_sheet(ws_e, result["entity_diffs"], alias_a, alias_b)
@@ -92,6 +102,8 @@ def generate_excel_report(
 
 def _write_summary_sheet(ws, alias_a, alias_b, result, inst_a, inst_b, ts):
     s = result["summary"]
+    quality_summary = result.get("quality_analysis", {}).get("summary", {})
+    quality_counts = quality_summary.get("by_severity", {})
     ws.column_dimensions["A"].width = 38
     ws.column_dimensions["B"].width = 25
 
@@ -122,12 +134,67 @@ def _write_summary_sheet(ws, alias_a, alias_b, result, inst_a, inst_b, ts):
         ("Values missing from A", s.get("missing_values_in_a", 0)),
         ("Values missing from B", s.get("missing_values_in_b", 0)),
         ("Value field differences", s.get("value_diffs", 0)),
+        ("", ""),
+        ("Validation findings", quality_summary.get("total", 0)),
+        ("Critical severity findings", quality_counts.get("critical", 0)),
+        ("High severity findings", quality_counts.get("high", 0)),
+        ("Medium severity findings", quality_counts.get("medium", 0)),
+        ("Low severity findings", quality_counts.get("low", 0)),
+        ("Informational findings", quality_counts.get("info", 0)),
     ]
     for r, (label, value) in enumerate(data, 3):
         ws.cell(row=r, column=1, value=label).font = Font(bold=True)
-        ws.cell(row=r, column=2, value=value)
+        ws.cell(row=r, column=2, value=_excel_safe(value))
 
     ws.freeze_panes = "A2"
+
+
+def _write_validation_findings_sheet(ws, analysis):
+    cols = [
+        "Severity",
+        "Rule ID",
+        "Object Type",
+        "Object ID",
+        "Affected Field",
+        "Source Value",
+        "Target Value",
+        "Reason",
+        "Recommended Correction",
+        "Detection Method",
+    ]
+    _header_style(ws, 1, cols)
+    ws.freeze_panes = "A2"
+    severity_fills = {
+        "critical": RED_FILL,
+        "high": ORANGE_FILL,
+        "medium": YELLOW_FILL,
+        "low": ALT_FILL,
+        "info": GREY_FILL,
+    }
+    for row, finding in enumerate(analysis.get("findings", []), 2):
+        values = [
+            finding.get("severity"),
+            finding.get("rule_id"),
+            finding.get("object_type"),
+            finding.get("object_id"),
+            finding.get("affected_field"),
+            finding.get("source_value"),
+            finding.get("target_value"),
+            finding.get("reason"),
+            finding.get("recommended_correction"),
+            finding.get("detection_method"),
+        ]
+        for column, value in enumerate(values, 1):
+            ws.cell(row=row, column=column, value=_excel_safe(value))
+        _row_fill(
+            ws,
+            row,
+            len(cols),
+            severity_fills.get(finding.get("severity"), GREY_FILL),
+        )
+        ws.cell(row=row, column=8).alignment = Alignment(wrap_text=True, vertical="top")
+        ws.cell(row=row, column=9).alignment = Alignment(wrap_text=True, vertical="top")
+    _auto_width(ws)
 
 
 def _write_entity_diff_sheet(ws, entity_diffs, alias_a, alias_b):
@@ -136,10 +203,10 @@ def _write_entity_diff_sheet(ws, entity_diffs, alias_a, alias_b):
     ws.freeze_panes = "A2"
     for i, d in enumerate(entity_diffs, 2):
         details = d.get("details") or {}
-        ws.cell(row=i, column=1, value=d["entity_name"])
+        ws.cell(row=i, column=1, value=_excel_safe(d["entity_name"]))
         ws.cell(row=i, column=2, value=d["diff_type"].replace("_", " ").title())
-        ws.cell(row=i, column=3, value=details.get("entity_label"))
-        ws.cell(row=i, column=4, value=details.get("element_name"))
+        ws.cell(row=i, column=3, value=_excel_safe(details.get("entity_label")))
+        ws.cell(row=i, column=4, value=_excel_safe(details.get("element_name")))
         _row_fill(ws, i, len(cols), RED_FILL if "only" in d["diff_type"] else ALT_FILL)
     _auto_width(ws)
 
@@ -157,12 +224,12 @@ def _write_field_diff_sheet(ws, field_diffs, alias_a, alias_b):
     _header_style(ws, 1, cols)
     ws.freeze_panes = "A2"
     for i, d in enumerate(field_diffs, 2):
-        ws.cell(row=i, column=1, value=d["entity_name"])
-        ws.cell(row=i, column=2, value=d["field_id"])
-        ws.cell(row=i, column=3, value=d.get("field_label"))
-        ws.cell(row=i, column=4, value=d.get("attribute"))
-        ws.cell(row=i, column=5, value=d.get("value_a"))
-        ws.cell(row=i, column=6, value=d.get("value_b"))
+        ws.cell(row=i, column=1, value=_excel_safe(d["entity_name"]))
+        ws.cell(row=i, column=2, value=_excel_safe(d["field_id"]))
+        ws.cell(row=i, column=3, value=_excel_safe(d.get("field_label")))
+        ws.cell(row=i, column=4, value=_excel_safe(d.get("attribute")))
+        ws.cell(row=i, column=5, value=_excel_safe(d.get("value_a")))
+        ws.cell(row=i, column=6, value=_excel_safe(d.get("value_b")))
         ws.cell(row=i, column=7, value=d["diff_type"].replace("_", " ").title())
         if "only" in d["diff_type"]:
             _row_fill(ws, i, len(cols), RED_FILL)
@@ -177,8 +244,8 @@ def _write_missing_picklists_sheet(ws, missing_picklists, alias_a, alias_b):
     ws.freeze_panes = "A2"
     for i, d in enumerate(missing_picklists, 2):
         missing_from = alias_b if d["diff_type"] == "only_in_a" else alias_a
-        ws.cell(row=i, column=1, value=d["picklist_id"])
-        ws.cell(row=i, column=2, value=missing_from)
+        ws.cell(row=i, column=1, value=_excel_safe(d["picklist_id"]))
+        ws.cell(row=i, column=2, value=_excel_safe(missing_from))
         ws.cell(row=i, column=3, value=d["value_count"])
         _row_fill(
             ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL
@@ -192,11 +259,11 @@ def _write_missing_values_sheet(ws, missing_values, alias_a, alias_b):
     ws.freeze_panes = "A2"
     for i, d in enumerate(missing_values, 2):
         missing_from = alias_b if d["diff_type"] == "only_in_a" else alias_a
-        ws.cell(row=i, column=1, value=d["picklist_id"])
-        ws.cell(row=i, column=2, value=d["external_code"])
-        ws.cell(row=i, column=3, value=d.get("label"))
-        ws.cell(row=i, column=4, value=d.get("status"))
-        ws.cell(row=i, column=5, value=missing_from)
+        ws.cell(row=i, column=1, value=_excel_safe(d["picklist_id"]))
+        ws.cell(row=i, column=2, value=_excel_safe(d["external_code"]))
+        ws.cell(row=i, column=3, value=_excel_safe(d.get("label")))
+        ws.cell(row=i, column=4, value=_excel_safe(d.get("status")))
+        ws.cell(row=i, column=5, value=_excel_safe(missing_from))
         _row_fill(
             ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL
         )
@@ -218,13 +285,13 @@ def _write_value_diffs_sheet(ws, value_diffs, alias_a, alias_b):
     row = 2
     for d in value_diffs:
         for fd in d["field_diffs"]:
-            ws.cell(row=row, column=1, value=d["picklist_id"])
-            ws.cell(row=row, column=2, value=d["external_code"])
-            ws.cell(row=row, column=3, value=d.get("label_a"))
-            ws.cell(row=row, column=4, value=d.get("label_b"))
-            ws.cell(row=row, column=5, value=fd["field"])
-            ws.cell(row=row, column=6, value=fd["value_a"])
-            ws.cell(row=row, column=7, value=fd["value_b"])
+            ws.cell(row=row, column=1, value=_excel_safe(d["picklist_id"]))
+            ws.cell(row=row, column=2, value=_excel_safe(d["external_code"]))
+            ws.cell(row=row, column=3, value=_excel_safe(d.get("label_a")))
+            ws.cell(row=row, column=4, value=_excel_safe(d.get("label_b")))
+            ws.cell(row=row, column=5, value=_excel_safe(fd["field"]))
+            ws.cell(row=row, column=6, value=_excel_safe(fd["value_a"]))
+            ws.cell(row=row, column=7, value=_excel_safe(fd["value_b"]))
             _row_fill(ws, row, len(cols), YELLOW_FILL if row % 2 == 0 else "FFFDE7")
             row += 1
     _auto_width(ws)
@@ -236,10 +303,10 @@ def _write_fields_only_sheet(ws, field_diffs, alias_a, alias_b):
     ws.freeze_panes = "A2"
     for i, d in enumerate(field_diffs, 2):
         missing_from = alias_b if d["diff_type"] == "only_in_a" else alias_a
-        ws.cell(row=i, column=1, value=d["entity_name"])
-        ws.cell(row=i, column=2, value=d["field_id"])
-        ws.cell(row=i, column=3, value=d.get("field_label"))
-        ws.cell(row=i, column=4, value=missing_from)
+        ws.cell(row=i, column=1, value=_excel_safe(d["entity_name"]))
+        ws.cell(row=i, column=2, value=_excel_safe(d["field_id"]))
+        ws.cell(row=i, column=3, value=_excel_safe(d.get("field_label")))
+        ws.cell(row=i, column=4, value=_excel_safe(missing_from))
         _row_fill(
             ws, i, len(cols), RED_FILL if d["diff_type"] == "only_in_a" else ALT_FILL
         )
@@ -268,6 +335,41 @@ def generate_html_report(
 
     def h(value):
         return escape(str(value or ""))
+
+    quality = result.get("quality_analysis", {})
+    quality_findings = quality.get("findings", [])
+    severity_classes = {
+        "critical": "bg-red-700 text-white",
+        "high": "bg-red-100 text-red-800",
+        "medium": "bg-amber-100 text-amber-800",
+        "low": "bg-blue-100 text-blue-800",
+        "info": "bg-gray-100 text-gray-700",
+    }
+    quality_rows = ""
+    default_severity_class = severity_classes["info"]
+    for finding in quality_findings:
+        severity = finding.get("severity", "info")
+        quality_rows += f"""<tr class="border-b hover:bg-gray-50">
+            <td class="px-3 py-2 align-top"><span class="rounded px-2 py-0.5 text-xs font-semibold {severity_classes.get(severity, default_severity_class)}">{h(severity).upper()}</span></td>
+            <td class="px-3 py-2 align-top font-mono text-xs">{h(finding.get("rule_id"))}</td>
+            <td class="px-3 py-2 align-top font-mono text-xs">{h(finding.get("object_id"))}</td>
+            <td class="px-3 py-2 align-top text-sm">{h(finding.get("affected_field")) or "-"}</td>
+            <td class="px-3 py-2 align-top text-sm">{h(finding.get("reason"))}</td>
+            <td class="px-3 py-2 align-top text-sm">{h(finding.get("recommended_correction"))}</td>
+        </tr>"""
+    quality_section = (
+        f"""<div class="bg-white rounded-xl shadow p-6 mb-6" id="quality-section">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div><h2 class="text-lg font-semibold">Migration Readiness Findings</h2><p class="text-xs text-gray-500">Explainable deterministic rules, not AI or statistical anomaly detection.</p></div>
+            <span class="rounded bg-gray-100 px-2 py-1 text-xs font-medium">{len(quality_findings)} findings</span>
+          </div>
+          <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 text-xs text-gray-500 uppercase">
+            <th class="px-3 py-2 text-left">Severity</th><th class="px-3 py-2 text-left">Rule</th><th class="px-3 py-2 text-left">Object</th><th class="px-3 py-2 text-left">Affected field</th><th class="px-3 py-2 text-left">Reason</th><th class="px-3 py-2 text-left">Recommended correction</th>
+          </tr></thead><tbody>{quality_rows}</tbody></table></div>
+        </div>"""
+        if quality_findings
+        else """<div class="bg-green-50 border border-green-200 rounded-xl p-6 mb-6" id="quality-section"><h2 class="text-lg font-semibold text-green-800">Migration Readiness Findings</h2><p class="text-sm text-green-700">No deterministic rule violations were found in this comparison.</p></div>"""
+    )
 
     # --- Summary cards ---
     nav_urls = nav_urls or {}
@@ -529,6 +631,8 @@ def generate_html_report(
     </div>
     {summary_cards}
   </div>
+
+  {quality_section}
 
   <!-- Filter -->
   <div class="mb-4">

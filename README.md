@@ -11,7 +11,7 @@ side-by-side HTML and Excel comparison reports.
 
 Public project page: https://sahirvhora.github.io/sf-config-compare/
 
-![SF Config Compare landing page](assets/screenshot-landing.png)
+![SF Config Compare project preview](assets/social-preview.png)
 
 ## What It Compares
 
@@ -21,6 +21,71 @@ Public project page: https://sahirvhora.github.io/sf-config-compare/
 - Picklists present in one instance but missing in another
 - Picklist values missing from shared picklists
 - Picklist value differences, including English label, status, and locale labels
+
+## Explainable Migration-Readiness Analysis
+
+Every two-instance comparison treats Instance A as the **source** and Instance B
+as the **target**. A deterministic rules engine converts raw drift into validation
+findings that can be triaged by a migration team. Each finding includes:
+
+- a stable rule ID and severity (`critical`, `high`, `medium`, `low`, or `info`)
+- the affected entity, field, field attribute, picklist, or picklist value
+- source and target evidence
+- a plain-English reason and recommended correction
+- `detection_method: deterministic_rule` for auditability
+
+The rules identify migration risks such as missing target entities or fields,
+incompatible field types, smaller target lengths, required-field drift, mismatched
+picklist assignments, and active source codes that are absent from the target.
+They do **not** use AI or statistical anomaly detection. The separate optional AI
+summary is a narrative aid and is never presented as deterministic evidence.
+
+Example API finding, using fictitious object and tenant names:
+
+```json
+{
+  "rule_id": "CHK-CFG-007",
+  "severity": "high",
+  "object_type": "field_attribute",
+  "object_id": "EmpEmployment.assignmentIdExternal",
+  "affected_field": "max_length",
+  "source_value": "100",
+  "target_value": "32",
+  "reason": "Target maximum length is smaller than the source; source values may be truncated or rejected.",
+  "recommended_correction": "Profile source value lengths, then increase target capacity or add a documented transformation with rejection handling.",
+  "detection_method": "deterministic_rule"
+}
+```
+
+Findings appear in the JSON API, the HTML report, and a dedicated **Validation
+Findings** worksheet in the Excel export.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    SF[SuccessFactors OData v2\nread-only] --> P[Metadata and picklist pullers]
+    P --> DB[(Local SQLite snapshots)]
+    DB --> C[Deterministic comparator]
+    C --> Q[Migration-readiness rules]
+    Q --> API[JSON API]
+    Q --> HTML[Explainable HTML report]
+    Q --> XLSX[Excel validation workbook]
+    C -. optional diff context .-> AI[Optional AI narrative summary]
+```
+
+The separation between collection, comparison, deterministic validation, and
+optional narrative generation keeps evidence reproducible and allows the core
+analysis to run without an LLM or external AI service.
+
+## Business Value
+
+The output is designed to support migration readiness and configuration-control
+workshops. It measures counts by severity, makes each issue traceable to a field
+or object, and gives reviewers a correction path. Teams can use those measured
+counts as quality-gate inputs for mock-load entry criteria, defect triage, and
+source-to-target sign-off. No time-saved or defect-reduction claims are made
+without project-specific baseline data.
 
 ### Two-Instance Compare vs N-Instance Matrix
 
