@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 from sapsf_shared.auth import (
     AuthConfig,
@@ -79,7 +80,9 @@ def fetch_oauth_token(
 ) -> str:
     """Fetch a client-credentials OAuth token (uses SDK token cache)."""
     cfg = AuthConfig(
-        base_url="",  # not needed for token fetch
+        base_url=urlunsplit(
+            (urlsplit(token_url).scheme, urlsplit(token_url).netloc, "", "", "")
+        ),
         auth_type="oauth2",
         client_id=client_id,
         client_secret=client_secret,

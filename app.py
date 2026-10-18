@@ -119,6 +119,26 @@ app.jinja_env.globals["csrf_token"] = _get_csrf_token
 
 
 @app.before_request
+def require_application_auth():
+    token = os.getenv("APP_ACCESS_TOKEN", "")
+    if token:
+        auth = request.authorization
+        supplied = request.headers.get("X-App-Token", "")
+        if auth and auth.type == "basic" and auth.username == "sf":
+            supplied = auth.password or ""
+        if supplied and secrets.compare_digest(supplied.encode(), token.encode()):
+            return None
+        return Response(
+            "Authentication required",
+            401,
+            {"WWW-Authenticate": 'Basic realm="SF Config Compare"'},
+        )
+    if request.remote_addr not in {"127.0.0.1", "::1"}:
+        return Response("Configure APP_ACCESS_TOKEN before remote access", 503)
+    return None
+
+
+@app.before_request
 def check_csrf():
     if app.config.get("TESTING") is True:
         return

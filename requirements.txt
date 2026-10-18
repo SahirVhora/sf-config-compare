@@ -9,7 +9,7 @@ defusedxml==0.7.1
 gunicorn==23.0.0
 
 # Sibling project dependency
-sapsf-shared @ git+https://github.com/SahirVhora/sapsf-shared.git@91a4a1cccac5c1df66c215857e8a4b01608118ef
+sapsf-shared @ git+https://github.com/SahirVhora/sapsf-shared.git@da247058792dd30cfed282fd2001b7aaa5a34ff2
 
 # Flask extensions (optional runtime -- app degrades gracefully)
 flask-caching==2.3.1
