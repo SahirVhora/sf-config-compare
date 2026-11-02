@@ -1,0 +1,42 @@
+{
+  "quality_analysis": {
+    "findings": [
+      {
+        "rule_id": "CHK-CFG-007",
+        "severity": "high",
+        "object_type": "field_attribute",
+        "object_id": "EmpEmployment.assignmentIdExternal",
+        "affected_field": "max_length",
+        "source_value": "100",
+        "target_value": "32",
+        "reason": "Target maximum length is smaller than the source for EmpEmployment.assignmentIdExternal; source values may be truncated or rejected.",
+        "recommended_correction": "Profile source value lengths, then increase SYNTHETIC_TARGET capacity or add a documented transformation with rejection handling.",
+        "detection_method": "deterministic_rule"
+      },
+      {
+        "rule_id": "CHK-CFG-003",
+        "severity": "high",
+        "object_type": "field",
+        "object_id": "EmpJob.customString99",
+        "affected_field": "customString99",
+        "source_value": "present",
+        "target_value": "missing",
+        "reason": "Field EmpJob.customString99 exists in SYNTHETIC_SOURCE but is missing from SYNTHETIC_TARGET; source data cannot be mapped to the same target field.",
+        "recommended_correction": "Confirm the field is in migration scope, then create or transport it to SYNTHETIC_TARGET before loading data.",
+        "detection_method": "deterministic_rule"
+      },
+      {
+        "rule_id": "CHK-CFG-004",
+        "severity": "info",
+        "object_type": "field",
+        "object_id": "EmpJob.customString98",
+        "affected_field": "customString98",
+        "source_value": "missing",
+        "target_value": "present",
+        "reason": "Field EmpJob.customString98 exists only in SYNTHETIC_TARGET; it has no equivalent in the compared SYNTHETIC_SOURCE configuration.",
+        "recommended_correction": "Confirm whether the target-only field needs a default, derivation rule, or explicit exclusion from the migration mapping.",
+        "detection_method": "deterministic_rule"
+      }
+    ]
+  }
+}

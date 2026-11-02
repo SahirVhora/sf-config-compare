@@ -283,3 +283,10 @@ Related tools:
 - [ObjectSync](https://github.com/SahirVhora/sf-object-sync) - Sync OM foundation objects PRD to Dev
 - [Config Debt Radar](https://github.com/SahirVhora/sf-config-debt-radar) - Scan EC configuration debt - CLI, dashboard, MCP server
 - [Position Integrity Checker](https://github.com/SahirVhora/sf-position-integrity-checker) - Validate position data integrity
+
+## Persistent investigation pilot
+
+Turn comparison findings into durable investigation tasks with evidence, proposed
+corrections, optional AI assistance and an exportable review history. Start with
+[the synthetic demo and setup guide](docs/investigation-pilot.md).
+
