@@ -428,7 +428,7 @@ def compare():
 
 
 def _gate_report_token() -> None:
-    """ADR-0003: header-first report token gate (query string deprecated)."""
+    """ADR-0003: header-only report token gate."""
     if not check_local_token(REPORT_ACCESS_TOKEN):
         abort(
             403,
