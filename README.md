@@ -283,3 +283,10 @@ Related tools:
 - [ObjectSync](https://github.com/SahirVhora/sf-object-sync) - Sync OM foundation objects PRD to Dev
 - [Config Debt Radar](https://github.com/SahirVhora/sf-config-debt-radar) - Scan EC configuration debt - CLI, dashboard, MCP server
 - [Position Integrity Checker](https://github.com/SahirVhora/sf-position-integrity-checker) - Validate position data integrity
+
+### Remote authentication
+
+Set `APP_ACCESS_TOKEN` before remote access. The Render template generates this token.
+In a browser, use username `sf` and the token as the password. API clients can send `X-App-Token`.
+Use HTTPS for remote access. Requests from non-loopback addresses fail closed without the token.
+The report token remains a separate permission for report downloads.
