@@ -478,29 +478,31 @@ def get_pull_history_by_id(history_id: int) -> dict | None:
 def save_entity_snapshots(history_id: int, entities: list[dict]):
     """Store entity snapshots for a given pull history record."""
     with get_conn() as conn:
-        for ent in entities:
-            conn.execute(
-                """INSERT INTO entity_snapshots
-                   (history_id, entity_name, entity_label, element_name, fields_json)
-                   VALUES (?, ?, ?, ?, ?)""",
+        conn.executemany(
+            """INSERT INTO entity_snapshots
+               (history_id, entity_name, entity_label, element_name, fields_json)
+               VALUES (?, ?, ?, ?, ?)""",
+            (
                 (
                     history_id,
                     ent["entity_name"],
                     ent.get("entity_label", ""),
                     ent.get("element_name", ""),
                     json.dumps(ent.get("fields", [])),
-                ),
-            )
+                )
+                for ent in entities
+            ),
+        )
 
 
 def save_picklist_snapshots(history_id: int, picklist_values: list[dict]):
     """Store picklist value snapshots for a given pull history record."""
     with get_conn() as conn:
-        for pv in picklist_values:
-            conn.execute(
-                """INSERT INTO picklist_snapshots
-                   (history_id, picklist_id, external_code, option_id, label_en, status, all_labels)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        conn.executemany(
+            """INSERT INTO picklist_snapshots
+               (history_id, picklist_id, external_code, option_id, label_en, status, all_labels)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
                 (
                     history_id,
                     pv["picklist_id"],
@@ -509,8 +511,10 @@ def save_picklist_snapshots(history_id: int, picklist_values: list[dict]):
                     pv.get("label_en"),
                     pv.get("status"),
                     pv.get("all_labels"),
-                ),
-            )
+                )
+                for pv in picklist_values
+            ),
+        )
 
 
 def get_entity_snapshots(history_id: int) -> list[dict]:

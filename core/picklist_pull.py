@@ -88,6 +88,7 @@ def _fetch_all_pages(base_url: str, headers: dict, auth, emit) -> list:
     skip = 0
     url = _build_picklist_url(endpoint, skip)
     page = 0
+    server_pagination = False
     seen_urls: set[str] = set()
     while url:
         if url in seen_urls:
@@ -96,16 +97,19 @@ def _fetch_all_pages(base_url: str, headers: dict, auth, emit) -> list:
         page += 1
         emit("fetch", "in-progress", f"Fetching page {page}…", 20 + min(page * 5, 55))
         resp = get_with_retry(url, headers=headers, auth=auth, verify=True, timeout=60)
+        if 300 <= resp.status_code < 400:
+            raise SFClientError("Rejected redirect from credentialed OData request")
         resp.raise_for_status()
         data = resp.json().get("d", {})
         results = data.get("results", [])
         all_results.extend(results)
         next_url = data.get("__next")  # OData next-page link
         if next_url:
+            server_pagination = True
             url = trusted_pagination_url(
                 f"{base_url}/odata/v2", next_url, url
             )
-        elif len(results) == PAGE_SIZE:
+        elif not server_pagination and len(results) == PAGE_SIZE:
             skip += PAGE_SIZE
             url = _build_picklist_url(endpoint, skip)
         else:
