@@ -35,7 +35,7 @@ def _json_err(
 
 
 def _check_report_token() -> None:
-    # ADR-0003: header-first, query-string fallback is deprecated.
+    # ADR-0003: report tokens are header-only.
     # See sapsf/_shared/src/sapsf_shared/flask_base.check_local_token.
     if not check_local_token(REPORT_ACCESS_TOKEN):
         abort(403)
@@ -220,8 +220,7 @@ def api_compare_report():
 
     # ADR-0003: do not embed the access token in report URLs. Callers
     # must add the X-Report-Token header on download/view. The token
-    # is still validated by ``_check_report_token`` via header (or the
-    # deprecated query-string fallback) on the actual request.
+    # is validated by ``_check_report_token`` on the actual request.
     return jsonify(
         {
             "comparison": {

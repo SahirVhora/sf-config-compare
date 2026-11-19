@@ -184,8 +184,9 @@ databases, logs, or generated reports.
 ## Report Access Control
 
 If you set `REPORT_ACCESS_TOKEN` in your `.env`, the report view and download
-endpoints require a matching `?token=` query parameter. This prevents
-unauthorised access when the app is exposed on a network.
+endpoints require a matching `X-Report-Token` request header. Do not send
+credentials in query strings: they can leak to browser history, referrer
+headers, and access logs.
 
 ## REST API
 
