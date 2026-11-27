@@ -184,8 +184,9 @@ databases, logs, or generated reports.
 ## Report Access Control
 
 If you set `REPORT_ACCESS_TOKEN` in your `.env`, the report view and download
-endpoints require a matching `?token=` query parameter. This prevents
-unauthorised access when the app is exposed on a network.
+endpoints require a matching `X-Report-Token` request header. Do not send
+credentials in query strings: they can leak to browser history, referrer
+headers, and access logs.
 
 ## REST API
 
@@ -290,3 +291,9 @@ Turn comparison findings into durable investigation tasks with evidence, propose
 corrections, optional AI assistance and an exportable review history. Start with
 [the synthetic demo and setup guide](docs/investigation-pilot.md).
 
+### Remote authentication
+
+Set `APP_ACCESS_TOKEN` before remote access. The Render template generates this token.
+In a browser, use username `sf` and the token as the password. API clients can send `X-App-Token`.
+Use HTTPS for remote access. Requests from non-loopback addresses fail closed without the token.
+The report token remains a separate permission for report downloads.
