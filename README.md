@@ -285,6 +285,12 @@ Related tools:
 - [Config Debt Radar](https://github.com/SahirVhora/sf-config-debt-radar) - Scan EC configuration debt - CLI, dashboard, MCP server
 - [Position Integrity Checker](https://github.com/SahirVhora/sf-position-integrity-checker) - Validate position data integrity
 
+## Persistent investigation pilot
+
+Turn comparison findings into durable investigation tasks with evidence, proposed
+corrections, optional AI assistance and an exportable review history. Start with
+[the synthetic demo and setup guide](docs/investigation-pilot.md).
+
 ### Remote authentication
 
 Set `APP_ACCESS_TOKEN` before remote access. The Render template generates this token.
