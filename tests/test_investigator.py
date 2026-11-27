@@ -114,7 +114,7 @@ class InvestigatorTests(unittest.TestCase):
         sdk = MagicMock()
         sdk.OpenAI.return_value.chat.completions.create.return_value.choices[0].message.content = '{"test":true}'
         with patch.dict('sys.modules', {'openai': sdk}), patch.dict('os.environ', {
-                'OPENAI_API_KEY': 'fake-test-key', 'OPENAI_MODEL': 'configured-model'}):
+                'OPENAI_API_KEY': 'fake-test-key', 'OPENAI_MODEL': 'configured-model'}):  # pragma: allowlist secret
             self.assertEqual(inv.ai_proposal(FINDING), {'test': True})
         sdk.OpenAI.assert_called_once_with(timeout=45, max_retries=0)
 
